@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.4.3] 2026-05-29
+- overlay.js: settings now pop out as a separate floating panel to the left of the main panel instead of replacing the tracker list; popout is a fixed-position shadow-root-level div with a right-pointing speech-bubble tail; tracker list stays fully visible; popout closes on outside click or gear button re-click
+
 [0.4.2] 2026-05-29
 - overlay.js: added ⚙ settings button to panel header; clicking it swaps the tracker list for a settings view containing: per-site enable/disable toggle (hides widget when disabled, reads/writes via background messages) and a reset-position button (restores top-right default and clears chrome.storage.local entry); settings view closes when panel closes; gear icon turns amber when settings are open
 

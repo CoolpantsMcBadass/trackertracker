@@ -144,30 +144,69 @@
       .cc-close:hover, .cc-settings-btn:hover { color: #f4f4f5; background: #3f3f46; }
       .cc-settings-btn.active { color: #f59e0b; background: #3f3f46; }
 
-      /* ── Settings panel ── */
-      .cc-settings {
-        display: none;
-        flex-direction: column;
-        padding: 8px 0 4px;
+      /* ── Settings popout (floating, lives at shadow root level) ── */
+      .cc-settings-popout {
+        position: fixed;
+        width: 210px;
+        background: #18181b;
+        border: 1px solid #3f3f46;
+        border-radius: 10px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.65);
+        z-index: 2147483647;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
-      .cc-settings.open { display: flex; }
+      .cc-settings-popout.visible {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      /* Right-pointing tail (mirrors the tooltip arrow) */
+      .cc-settings-popout::before {
+        content: "";
+        position: absolute;
+        left: 100%;
+        top: 14px;
+        border: 7px solid transparent;
+        border-left-color: #3f3f46;
+      }
+      .cc-settings-popout::after {
+        content: "";
+        position: absolute;
+        left: 100%;
+        top: 14px;
+        margin-left: -1px;
+        border: 6px solid transparent;
+        border-left-color: #18181b;
+      }
+
+      .cc-sp-header {
+        padding: 8px 11px 7px;
+        border-bottom: 1px solid #3f3f46;
+        font-size: 11px;
+        font-weight: 700;
+        color: #a1a1aa;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
 
       .cc-setting-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 7px 11px;
+        padding: 9px 11px;
         gap: 10px;
       }
       .cc-setting-label {
         font-size: 11px;
         color: #d4d4d8;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       .cc-setting-sub {
         font-size: 10px;
         color: #71717a;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         margin-top: 1px;
       }
       .cc-setting-text { display: flex; flex-direction: column; }
@@ -211,14 +250,14 @@
       .cc-setting-divider {
         height: 1px;
         background: #3f3f46;
-        margin: 4px 11px;
+        margin: 0 11px;
       }
 
       .cc-reset-btn {
         display: flex;
         align-items: center;
         gap: 6px;
-        margin: 2px 11px 6px;
+        margin: 7px 11px 9px;
         padding: 6px 9px;
         background: #27272a;
         border: 1px solid #3f3f46;
@@ -467,20 +506,6 @@
         <div class="cc-empty">No trackers detected yet.</div>
       </div>
 
-      <div class="cc-settings" id="cc-settings">
-        <div class="cc-setting-row">
-          <div class="cc-setting-text">
-            <span class="cc-setting-label">Enabled on this site</span>
-            <span class="cc-setting-sub" id="cc-site-hostname"></span>
-          </div>
-          <label class="cc-toggle-wrap">
-            <input type="checkbox" id="cc-site-toggle" checked />
-            <span class="cc-toggle-track"><span class="cc-toggle-thumb"></span></span>
-          </label>
-        </div>
-        <div class="cc-setting-divider"></div>
-        <button class="cc-reset-btn" id="cc-reset-pos">↖ Reset position to default</button>
-      </div>
     </div>
   `;
 
@@ -498,10 +523,30 @@
   const countNum  = shadow.getElementById("cc-count-num");
   const list        = shadow.getElementById("cc-list");
   const settingsBtn = shadow.getElementById("cc-settings-btn");
-  const settingsEl  = shadow.getElementById("cc-settings");
-  const siteToggle  = shadow.getElementById("cc-site-toggle");
-  const siteHostname = shadow.getElementById("cc-site-hostname");
-  const resetPosBtn = shadow.getElementById("cc-reset-pos");
+
+  // ── Build the floating settings popout at shadow-root level ──────────────
+  const settingsPopout = document.createElement("div");
+  settingsPopout.className = "cc-settings-popout";
+  settingsPopout.innerHTML = `
+    <div class="cc-sp-header">Settings</div>
+    <div class="cc-setting-row">
+      <div class="cc-setting-text">
+        <span class="cc-setting-label">Enabled on this site</span>
+        <span class="cc-setting-sub" id="cc-site-hostname"></span>
+      </div>
+      <label class="cc-toggle-wrap">
+        <input type="checkbox" id="cc-site-toggle" checked />
+        <span class="cc-toggle-track"><span class="cc-toggle-thumb"></span></span>
+      </label>
+    </div>
+    <div class="cc-setting-divider"></div>
+    <button class="cc-reset-btn" id="cc-reset-pos">↖ Reset position to default</button>
+  `;
+  shadow.appendChild(settingsPopout);
+
+  const siteToggle   = settingsPopout.querySelector("#cc-site-toggle");
+  const siteHostname = settingsPopout.querySelector("#cc-site-hostname");
+  const resetPosBtn  = settingsPopout.querySelector("#cc-reset-pos");
 
   // Shared tooltip — lives at shadow root level so it's not clipped by list overflow
   const sharedTooltip = document.createElement("div");
@@ -636,11 +681,10 @@
   function closePanel() {
     expanded = false;
     panel.classList.remove("open");
-    // reset settings view if open
+    // close settings popout if open
     settingsOpen = false;
-    if (settingsBtn) settingsBtn.classList.remove("active");
-    if (settingsEl)  settingsEl.classList.remove("open");
-    if (list)        list.style.display = "";
+    if (settingsBtn)    settingsBtn.classList.remove("active");
+    if (settingsPopout) settingsPopout.classList.remove("visible");
   }
 
   // ── Drag logic ────────────────────────────────────────────────────────────
@@ -743,23 +787,24 @@
   function openSettings() {
     settingsOpen = true;
     settingsBtn.classList.add("active");
-    settingsEl.classList.add("open");
-    list.style.display = "none";
-    // Show current site toggle state
+
+    // Position the popout to the left of the panel, aligned with the header
+    const panelRect = panel.getBoundingClientRect();
+    settingsPopout.style.top   = panelRect.top + "px";
+    settingsPopout.style.right = (window.innerWidth - panelRect.left + 8) + "px";
+
     siteHostname.textContent = location.hostname;
     chrome.runtime.sendMessage(
       { type: "IS_SITE_DISABLED", host: location.hostname },
-      (resp) => {
-        siteToggle.checked = !(resp && resp.disabled);
-      }
+      (resp) => { siteToggle.checked = !(resp && resp.disabled); }
     );
+    settingsPopout.classList.add("visible");
   }
 
   function closeSettings() {
     settingsOpen = false;
     settingsBtn.classList.remove("active");
-    settingsEl.classList.remove("open");
-    list.style.display = "";
+    settingsPopout.classList.remove("visible");
   }
 
   settingsBtn.addEventListener("click", (e) => {
@@ -793,6 +838,9 @@
   // Close on outside click (only if not dragging)
   document.addEventListener("click", (e) => {
     if (didDrag) return;
+    if (settingsOpen && !settingsPopout.contains(e.target) && e.target !== settingsBtn) {
+      closeSettings();
+    }
     if (!host.contains(e.target) && expanded) {
       closePanel();
     }
