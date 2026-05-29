@@ -19,7 +19,7 @@
   host.id = "cookiecutter-host";
   Object.assign(host.style, {
     position: "fixed",
-    bottom: "20px",
+    top: "20px",
     right: "20px",
     zIndex: "2147483647",
     fontFamily: "inherit",
@@ -75,7 +75,7 @@
       /* ── Panel ── */
       .cc-panel {
         position: absolute;
-        bottom: calc(100% + 8px);
+        top: calc(100% + 8px);
         right: 0;
         width: 260px;
         background: #18181b;

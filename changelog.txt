@@ -1,6 +1,10 @@
 Cookiecutter Changelog
 ======================
 
+[0.3.0] 2026-05-29
+- overlay.js: moved pill from bottom-right to top-right (top: 20px); panel now drops down below pill
+- data/trackers.json: expanded from 120 to 157 trackers — added Teads, Unruly, Tremor Video, TripleLift, Sharethrough, Nativo, Connatix, Innovid, Yahoo/Oath DSP, Quora Pixel, Wistia, Vidyard, JW Player, Brightcove, Leadfeeder/Dealfront, Albacross, Clearbit Reveal, Demandbase, 6sense, Adobe Analytics/Omniture, Adobe Audience Manager, Neustar/TransUnion, Acxiom, Perfect Audience, Salesloft, Outreach.io, Samba TV, GoSquared, etracker, Histats, Yieldmo, Smart AdServer/Equativ, Extreme Reach, Pubstack, Seedtag, Fathom Analytics, Simple Analytics, Plausible
+
 [0.2.0] 2026-05-29
 - overlay.js: floating pill injected into every page via Shadow DOM (style-isolated); shows live tracker count badge; click to expand panel with full tracker list, category badges, plain-English descriptions, and banner status; collapses on outside click or X button; receives push updates from background via TRACKER_UPDATE / BANNER_STATUS_UPDATE messages; requests initial state on load via GET_MY_TAB_DATA; respects per-site disable toggle
 - background.js: added GET_MY_TAB_DATA handler (sender.tab.id context); added schedulePush() to debounce-push TRACKER_UPDATE to content scripts when new trackers are detected (400ms debounce, only on new trackers); BANNER_STATUS now also pushes BANNER_STATUS_UPDATE to overlay

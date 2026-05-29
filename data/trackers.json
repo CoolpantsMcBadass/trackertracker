@@ -926,5 +926,309 @@
     "category": "marketing",
     "description": "Behavioral email platform — tracks your actions on the site to trigger automated, personalized email sequences.",
     "logo": "https://customer.io/favicon.ico"
+  },
+  {
+    "name": "Teads",
+    "company": "Teads",
+    "domains": ["teads.tv", "cdn.teads.tv", "a.teads.tv"],
+    "category": "advertising",
+    "description": "Video and native ad network embedded inside article content — tracks which ads you view and for how long.",
+    "logo": "https://www.teads.com/favicon.ico"
+  },
+  {
+    "name": "Unruly",
+    "company": "Tremor International",
+    "domains": ["unruly.co", "video.unruly.co"],
+    "category": "advertising",
+    "description": "Programmatic video ad network that measures your emotional response and engagement with video ads.",
+    "logo": "https://unruly.co/favicon.ico"
+  },
+  {
+    "name": "Tremor Video",
+    "company": "Tremor International",
+    "domains": ["tremorvideo.com", "vidazoo.com", "tremorinternational.com"],
+    "category": "advertising",
+    "description": "Video advertising platform that tracks how much of each video ad you watched.",
+    "logo": "https://www.tremorinternational.com/favicon.ico"
+  },
+  {
+    "name": "TripleLift",
+    "company": "TripleLift",
+    "domains": ["3lift.com", "tlx.3lift.com", "eb2.3lift.com"],
+    "category": "advertising",
+    "description": "Native advertising exchange that matches sponsored content to your interests and tracks your clicks.",
+    "logo": "https://triplelift.com/favicon.ico"
+  },
+  {
+    "name": "Sharethrough",
+    "company": "Sharethrough",
+    "domains": ["sharethrough.com", "native.sharethrough.com"],
+    "category": "advertising",
+    "description": "Native ad platform that places sponsored content in editorial feeds — tracks your engagement with each unit.",
+    "logo": "https://www.sharethrough.com/favicon.ico"
+  },
+  {
+    "name": "Nativo",
+    "company": "Nativo",
+    "domains": ["nativo.com", "www.nativo.com"],
+    "category": "advertising",
+    "description": "Native advertising platform that serves branded content within editorial pages and tracks how you interact with it.",
+    "logo": "https://www.nativo.com/favicon.ico"
+  },
+  {
+    "name": "Connatix",
+    "company": "Connatix",
+    "domains": ["connatix.com", "cds.connatix.com"],
+    "category": "advertising",
+    "description": "Video content and advertising platform that tracks which videos you watch and uses that to serve targeted ads.",
+    "logo": "https://connatix.com/favicon.ico"
+  },
+  {
+    "name": "Innovid",
+    "company": "Innovid",
+    "domains": ["innovid.com", "8517399.fls.doubleclick.net"],
+    "category": "advertising",
+    "description": "Connected TV and video ad measurement — tracks which TV and streaming ads you've been exposed to.",
+    "logo": "https://www.innovid.com/favicon.ico"
+  },
+  {
+    "name": "Yahoo / Oath DSP",
+    "company": "Yahoo",
+    "domains": ["oath.com", "yahoo.com", "ads.yahoo.com", "udc.yahoo.com"],
+    "category": "advertising",
+    "description": "Yahoo's advertising platform — tracks your browsing to serve targeted display and video ads across the Yahoo network.",
+    "logo": "https://www.yahoo.com/favicon.ico"
+  },
+  {
+    "name": "Quora Pixel",
+    "company": "Quora",
+    "domains": ["q.quora.com", "quora.com/qpix"],
+    "category": "advertising",
+    "description": "Tells Quora what you did on this site so it can target you with ads based on your browsing intent.",
+    "logo": "https://www.quora.com/favicon.ico"
+  },
+  {
+    "name": "Wistia",
+    "company": "Wistia",
+    "domains": ["wistia.com", "fast.wistia.com", "fast.wistia.net", "embedwistia-a.akamaihd.net"],
+    "category": "analytics",
+    "description": "Video hosting platform that tells site owners exactly how much of each video you watched and where you dropped off.",
+    "logo": "https://wistia.com/favicon.ico"
+  },
+  {
+    "name": "Vidyard",
+    "company": "Vidyard",
+    "domains": ["vidyard.com", "play.vidyard.com"],
+    "category": "analytics",
+    "description": "Sales video platform that notifies salespeople when you watch their video and for how long — used to time follow-up calls.",
+    "logo": "https://www.vidyard.com/favicon.ico"
+  },
+  {
+    "name": "JW Player",
+    "company": "LongTail Video",
+    "domains": ["jwpcdn.com", "cdn.jwplayer.com", "imasdk.googleapis.com"],
+    "category": "analytics",
+    "description": "Video player with built-in analytics that tracks watch time, completion rate, and which ads you see.",
+    "logo": "https://www.jwplayer.com/favicon.ico"
+  },
+  {
+    "name": "Brightcove",
+    "company": "Brightcove",
+    "domains": ["brightcove.net", "players.brightcove.net", "metrics.brightcove.com"],
+    "category": "analytics",
+    "description": "Enterprise video platform that logs detailed analytics on your video viewing behavior.",
+    "logo": "https://www.brightcove.com/favicon.ico"
+  },
+  {
+    "name": "Leadfeeder / Dealfront",
+    "company": "Dealfront",
+    "domains": ["lftracker.leadfeeder.com", "sc.lfeeder.com", "lfeeder.com"],
+    "category": "analytics",
+    "description": "B2B tracker that identifies which company you work for based on your IP address and reports it to the site owner.",
+    "logo": "https://www.leadfeeder.com/favicon.ico"
+  },
+  {
+    "name": "Albacross",
+    "company": "Albacross",
+    "domains": ["albacross.com", "serve.albacross.com"],
+    "category": "analytics",
+    "description": "B2B visitor identification — tells site owners what company you work for so they can target you as a sales lead.",
+    "logo": "https://albacross.com/favicon.ico"
+  },
+  {
+    "name": "Clearbit Reveal",
+    "company": "HubSpot",
+    "domains": ["clearbit.com", "x.clearbit.com"],
+    "category": "analytics",
+    "description": "Identifies the company behind your IP address and enriches that with firmographic data for sales targeting.",
+    "logo": "https://clearbit.com/favicon.ico"
+  },
+  {
+    "name": "Demandbase",
+    "company": "Demandbase",
+    "domains": ["demandbase.com", "tag.demandbase.com"],
+    "category": "advertising",
+    "description": "Account-based marketing platform that identifies your company and serves targeted ads to your entire organization.",
+    "logo": "https://www.demandbase.com/favicon.ico"
+  },
+  {
+    "name": "6sense",
+    "company": "6sense",
+    "domains": ["6sense.com", "epsilon.6sense.com"],
+    "category": "advertising",
+    "description": "B2B intent data platform that tracks your research behavior to predict buying intent and target your company with ads.",
+    "logo": "https://6sense.com/favicon.ico"
+  },
+  {
+    "name": "Adobe Analytics (Omniture)",
+    "company": "Adobe",
+    "domains": ["omtrdc.net", "2o7.net", "sc.omtrdc.net", "adobedtm.com"],
+    "category": "analytics",
+    "description": "Enterprise analytics suite that tracks detailed behavioral data and funnel metrics, often for large media and e-commerce sites.",
+    "logo": "https://www.adobe.com/favicon.ico"
+  },
+  {
+    "name": "Adobe Audience Manager",
+    "company": "Adobe",
+    "domains": ["demdex.net", "dpm.demdex.net", "cm.everesttech.net"],
+    "category": "advertising",
+    "description": "Data management platform that builds audience segments from your behavior and sells them to advertisers.",
+    "logo": "https://www.adobe.com/favicon.ico"
+  },
+  {
+    "name": "Neustar / TransUnion",
+    "company": "TransUnion",
+    "domains": ["neustar.biz", "tag.iqm.neustar.biz", "adbrain.com"],
+    "category": "advertising",
+    "description": "Identity resolution and data enrichment — links your online behavior to offline consumer data held by TransUnion.",
+    "logo": "https://www.transunion.com/favicon.ico"
+  },
+  {
+    "name": "Acxiom",
+    "company": "Acxiom",
+    "domains": ["acxiom.com", "acxiom-online.com"],
+    "category": "advertising",
+    "description": "One of the world's largest data brokers — holds detailed consumer profiles and sells them to advertisers.",
+    "logo": "https://www.acxiom.com/favicon.ico"
+  },
+  {
+    "name": "Perfect Audience",
+    "company": "Perfect Audience",
+    "domains": ["perfect-audience.com", "hifi.perfect-audience.com"],
+    "category": "advertising",
+    "description": "Retargeting platform — follows you around the web with ads after you visit a site.",
+    "logo": "https://www.perfectaudience.com/favicon.ico"
+  },
+  {
+    "name": "Salesloft",
+    "company": "Salesloft",
+    "domains": ["salesloft.com", "s1.salesloft.com"],
+    "category": "marketing",
+    "description": "Sales engagement platform that can track which pages of a site a prospect visits to help salespeople time outreach.",
+    "logo": "https://salesloft.com/favicon.ico"
+  },
+  {
+    "name": "Outreach.io",
+    "company": "Outreach",
+    "domains": ["outreach.io", "app.outreach.io"],
+    "category": "marketing",
+    "description": "Sales automation tool that tracks email opens, link clicks, and can monitor which pages you visit.",
+    "logo": "https://www.outreach.io/favicon.ico"
+  },
+  {
+    "name": "Samba TV",
+    "company": "Samba TV",
+    "domains": ["samba.tv", "pixel.samba.tv"],
+    "category": "advertising",
+    "description": "TV audience measurement that links your TV viewing habits to your online browsing for cross-screen ad targeting.",
+    "logo": "https://www.samba.tv/favicon.ico"
+  },
+  {
+    "name": "GoSquared",
+    "company": "GoSquared",
+    "domains": ["gosquared.com", "data.gosquared.com"],
+    "category": "analytics",
+    "description": "Real-time analytics and CRM that tracks individual visitor sessions and links them to customer profiles.",
+    "logo": "https://www.gosquared.com/favicon.ico"
+  },
+  {
+    "name": "etracker",
+    "company": "etracker",
+    "domains": ["etracker.com", "et-ck.de", "code.etracker.com"],
+    "category": "analytics",
+    "description": "European web analytics platform that tracks page views, clicks, and conversion funnels.",
+    "logo": "https://www.etracker.com/favicon.ico"
+  },
+  {
+    "name": "Histats",
+    "company": "Histats",
+    "domains": ["histats.com", "c.histats.com", "s10.histats.com"],
+    "category": "analytics",
+    "description": "Web statistics tracker that logs your visit, IP address, browser, and referral source.",
+    "logo": "https://www.histats.com/favicon.ico"
+  },
+  {
+    "name": "Yieldmo",
+    "company": "Yieldmo",
+    "domains": ["yieldmo.com", "ad.yieldmo.com"],
+    "category": "advertising",
+    "description": "Mobile ad platform that tracks your attention and scroll behavior to measure ad engagement.",
+    "logo": "https://www.yieldmo.com/favicon.ico"
+  },
+  {
+    "name": "Smart AdServer",
+    "company": "Equativ",
+    "domains": ["smartadserver.com", "www.smartadserver.com", "equativ.com"],
+    "category": "advertising",
+    "description": "Ad serving platform that manages display and video ad delivery, tracking impressions and click-through rates.",
+    "logo": "https://equativ.com/favicon.ico"
+  },
+  {
+    "name": "Extreme Reach",
+    "company": "Extreme Reach",
+    "domains": ["extremereach.com", "extremereach.io"],
+    "category": "advertising",
+    "description": "Ad delivery and measurement platform that tracks whether you completed a video ad.",
+    "logo": "https://extremereach.com/favicon.ico"
+  },
+  {
+    "name": "Pubstack",
+    "company": "Pubstack",
+    "domains": ["pubstack.io", "cdn.pbstck.com"],
+    "category": "advertising",
+    "description": "Publisher ad revenue optimization tool that monitors your interactions with every ad slot on the page.",
+    "logo": "https://pubstack.io/favicon.ico"
+  },
+  {
+    "name": "Seedtag",
+    "company": "Seedtag",
+    "domains": ["seedtag.com", "t.seedtag.com"],
+    "category": "advertising",
+    "description": "Contextual advertising platform that analyzes the article content you're reading to serve relevant ads.",
+    "logo": "https://www.seedtag.com/favicon.ico"
+  },
+  {
+    "name": "Fathom Analytics",
+    "company": "Fathom",
+    "domains": ["usefathom.com", "cdn.usefathom.com"],
+    "category": "analytics",
+    "description": "Privacy-first analytics — tracks page views and referrers without storing personal data or using cookies.",
+    "logo": "https://usefathom.com/favicon.ico"
+  },
+  {
+    "name": "Simple Analytics",
+    "company": "Simple Analytics",
+    "domains": ["simpleanalytics.io", "simpleanalytics.com", "cdn.simpleanalytics.io"],
+    "category": "analytics",
+    "description": "Cookie-free analytics that counts visits without tracking individuals — one of the more privacy-respecting options.",
+    "logo": "https://simpleanalytics.com/favicon.ico"
+  },
+  {
+    "name": "Plausible",
+    "company": "Plausible Analytics",
+    "domains": ["plausible.io"],
+    "category": "analytics",
+    "description": "Lightweight, privacy-respecting analytics — no cookies, no personal data, just aggregated page view counts.",
+    "logo": "https://plausible.io/favicon.ico"
   }
 ]
