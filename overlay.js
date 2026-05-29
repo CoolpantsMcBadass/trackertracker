@@ -266,11 +266,7 @@
       .cat-other       { background:#27272a; color:#a1a1aa; }
 
       .cc-tooltip {
-        display: none;
-        position: absolute;
-        right: calc(100% + 10px);
-        top: 50%;
-        transform: translateY(-50%);
+        position: fixed;
         width: 210px;
         background: #09090b;
         border: 1px solid #52525b;
@@ -280,12 +276,14 @@
         color: #d4d4d8;
         line-height: 1.4;
         pointer-events: none;
-        z-index: 10;
+        z-index: 2147483647;
         box-shadow: 0 4px 16px rgba(0,0,0,0.6);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         white-space: normal;
+        opacity: 0;
+        transition: opacity 0.12s;
       }
-      .cc-tracker-item:hover .cc-tooltip { display: block; }
+      .cc-tooltip.visible { opacity: 1; }
 
       .cc-empty {
         font-size: 11px;
@@ -361,6 +359,11 @@
   const statusDot = shadow.getElementById("cc-status-dot");
   const countNum  = shadow.getElementById("cc-count-num");
   const list      = shadow.getElementById("cc-list");
+
+  // Shared tooltip — lives at shadow root level so it's not clipped by list overflow
+  const sharedTooltip = document.createElement("div");
+  sharedTooltip.className = "cc-tooltip";
+  shadow.appendChild(sharedTooltip);
 
   // ── Category labels ───────────────────────────────────────────────────────
 
@@ -459,10 +462,17 @@
       text.appendChild(nameRow);
 
       if (t.description) {
-        const tooltip = document.createElement("div");
-        tooltip.className = "cc-tooltip";
-        tooltip.textContent = t.description;
-        item.appendChild(tooltip);
+        item.addEventListener("mouseenter", () => {
+          const rect = item.getBoundingClientRect();
+          sharedTooltip.textContent = t.description;
+          sharedTooltip.style.top = (rect.top + rect.height / 2) + "px";
+          sharedTooltip.style.right = (window.innerWidth - rect.left + 10) + "px";
+          sharedTooltip.style.transform = "translateY(-50%)";
+          sharedTooltip.classList.add("visible");
+        });
+        item.addEventListener("mouseleave", () => {
+          sharedTooltip.classList.remove("visible");
+        });
       }
 
       item.appendChild(logo);
