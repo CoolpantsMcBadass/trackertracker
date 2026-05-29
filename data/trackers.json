@@ -26,7 +26,7 @@
   {
     "name": "Facebook Pixel",
     "company": "Meta",
-    "domains": ["connect.facebook.net", "facebook.com/tr"],
+    "domains": ["connect.facebook.net", "facebook.com"],
     "category": "advertising",
     "description": "Reports your actions on this site back to Facebook so it can target you with ads and track ad conversions.",
     "logo": "https://www.facebook.com/favicon.ico"
@@ -34,15 +34,15 @@
   {
     "name": "Instagram / Meta",
     "company": "Meta",
-    "domains": ["instagram.com", "graph.facebook.com"],
+    "domains": ["graph.facebook.com", "graph.instagram.com"],
     "category": "social",
-    "description": "Loads Meta social features and can track your browsing even if you're not on Instagram.",
+    "description": "Loads Meta social features and can track your browsing even if you're not logged into Instagram.",
     "logo": "https://www.instagram.com/favicon.ico"
   },
   {
     "name": "Twitter / X Pixel",
     "company": "X Corp",
-    "domains": ["static.ads-twitter.com", "analytics.twitter.com", "t.co"],
+    "domains": ["static.ads-twitter.com", "analytics.twitter.com", "ads-twitter.com"],
     "category": "advertising",
     "description": "Tells X/Twitter what pages you visit so it can link your browsing to your Twitter account for ad targeting.",
     "logo": "https://twitter.com/favicon.ico"
@@ -50,7 +50,7 @@
   {
     "name": "LinkedIn Insight Tag",
     "company": "LinkedIn",
-    "domains": ["snap.licdn.com", "linkedin.com/li/track"],
+    "domains": ["snap.licdn.com", "platform.linkedin.com"],
     "category": "advertising",
     "description": "Tracks your visits to build a professional profile of your browsing habits for LinkedIn ad targeting.",
     "logo": "https://www.linkedin.com/favicon.ico"
@@ -58,7 +58,7 @@
   {
     "name": "TikTok Pixel",
     "company": "ByteDance",
-    "domains": ["analytics.tiktok.com", "s.tiktokcdn.com"],
+    "domains": ["analytics.tiktok.com", "s.tiktokcdn.com", "business-api.tiktok.com"],
     "category": "advertising",
     "description": "Reports your activity on this site to TikTok for ad targeting and conversion tracking.",
     "logo": "https://www.tiktok.com/favicon.ico"
@@ -82,7 +82,7 @@
   {
     "name": "Reddit Pixel",
     "company": "Reddit",
-    "domains": ["alb.reddit.com", "events.redditmedia.com"],
+    "domains": ["alb.reddit.com", "events.redditmedia.com", "redd.it"],
     "category": "advertising",
     "description": "Tells Reddit what you did on this site so it can link your browsing to your Reddit account.",
     "logo": "https://www.reddit.com/favicon.ico"
@@ -90,7 +90,7 @@
   {
     "name": "Hotjar",
     "company": "Hotjar",
-    "domains": ["hotjar.com", "static.hotjar.com", "vars.hotjar.com"],
+    "domains": ["hotjar.com", "static.hotjar.com", "vars.hotjar.com", "script.hotjar.com"],
     "category": "analytics",
     "description": "Records your mouse movements, scrolling, and clicks — essentially a video of your session on this site.",
     "logo": "https://www.hotjar.com/favicon.ico"
@@ -98,7 +98,7 @@
   {
     "name": "Microsoft Clarity",
     "company": "Microsoft",
-    "domains": ["clarity.ms", "c.bing.com"],
+    "domains": ["clarity.ms"],
     "category": "analytics",
     "description": "Microsoft's session recording tool — watches how you navigate the page including heatmaps and replays.",
     "logo": "https://www.microsoft.com/favicon.ico"
@@ -122,7 +122,7 @@
   {
     "name": "Amplitude",
     "company": "Amplitude",
-    "domains": ["api.amplitude.com", "cdn.amplitude.com"],
+    "domains": ["api.amplitude.com", "cdn.amplitude.com", "api2.amplitude.com"],
     "category": "analytics",
     "description": "Logs detailed product analytics — which features you use, how often, and in what order.",
     "logo": "https://amplitude.com/favicon.ico"
@@ -130,7 +130,7 @@
   {
     "name": "Segment",
     "company": "Twilio Segment",
-    "domains": ["cdn.segment.com", "api.segment.io"],
+    "domains": ["cdn.segment.com", "api.segment.io", "cdn.segment.io"],
     "category": "analytics",
     "description": "A data pipeline that collects your behavior and sends it to dozens of other analytics and ad platforms.",
     "logo": "https://segment.com/favicon.ico"
@@ -154,7 +154,7 @@
   {
     "name": "LogRocket",
     "company": "LogRocket",
-    "domains": ["cdn.logrocket.io", "r.lr-ingest.io"],
+    "domains": ["cdn.logrocket.io", "r.lr-ingest.io", "logrocket.com"],
     "category": "analytics",
     "description": "Records session replays and performance data — a detailed log of everything you did on the page.",
     "logo": "https://logrocket.com/favicon.ico"
@@ -170,7 +170,7 @@
   {
     "name": "Crazy Egg",
     "company": "Crazy Egg",
-    "domains": ["crazyegg.com", "script.crazyegg.com"],
+    "domains": ["crazyegg.com", "script.crazyegg.com", "ce.js"],
     "category": "analytics",
     "description": "Tracks clicks and scrolling to generate heatmaps of how users interact with the page.",
     "logo": "https://www.crazyegg.com/favicon.ico"
@@ -184,9 +184,9 @@
     "logo": "https://www.optimizely.com/favicon.ico"
   },
   {
-    "name": "VWO (Visual Website Optimizer)",
+    "name": "VWO",
     "company": "Wingify",
-    "domains": ["vwo.com", "dev.visualwebsiteoptimizer.com"],
+    "domains": ["vwo.com", "dev.visualwebsiteoptimizer.com", "visualwebsiteoptimizer.com"],
     "category": "analytics",
     "description": "Runs A/B tests and records how different users interact with page variations.",
     "logo": "https://vwo.com/favicon.ico"
@@ -194,15 +194,15 @@
   {
     "name": "Criteo",
     "company": "Criteo",
-    "domains": ["criteo.com", "rtax.criteo.com", "dis.criteo.com"],
+    "domains": ["criteo.com", "rtax.criteo.com", "dis.criteo.com", "static.criteo.net"],
     "category": "advertising",
-    "description": "A retargeting ad network — if you looked at a product, Criteo shows you that product as an ad across other websites.",
+    "description": "A retargeting ad network — if you looked at a product, Criteo shows you that product as an ad elsewhere on the web.",
     "logo": "https://www.criteo.com/favicon.ico"
   },
   {
     "name": "Outbrain",
     "company": "Outbrain",
-    "domains": ["outbrain.com", "widgets.outbrain.com"],
+    "domains": ["outbrain.com", "widgets.outbrain.com", "amplify.outbrain.com"],
     "category": "advertising",
     "description": "Powers the 'You may also like' sponsored content links at the bottom of articles — and tracks which ones you click.",
     "logo": "https://www.outbrain.com/favicon.ico"
@@ -218,7 +218,7 @@
   {
     "name": "Amazon Ads",
     "company": "Amazon",
-    "domains": ["amazon-adsystem.com", "c.amazon-adsystem.com"],
+    "domains": ["amazon-adsystem.com", "c.amazon-adsystem.com", "aax.amazon-adsystem.com"],
     "category": "advertising",
     "description": "Tracks your browsing so Amazon can show you relevant ads both on and off Amazon.",
     "logo": "https://www.amazon.com/favicon.ico"
@@ -226,7 +226,7 @@
   {
     "name": "Quantcast",
     "company": "Quantcast",
-    "domains": ["quantserve.com", "quantcount.com"],
+    "domains": ["quantserve.com", "quantcount.com", "quantcast.com"],
     "category": "advertising",
     "description": "Collects data about your demographics and interests to help advertisers target audiences like you.",
     "logo": "https://www.quantcast.com/favicon.ico"
@@ -234,7 +234,7 @@
   {
     "name": "Intercom",
     "company": "Intercom",
-    "domains": ["intercom.io", "widget.intercom.io", "js.intercomcdn.com"],
+    "domains": ["intercom.io", "widget.intercom.io", "js.intercomcdn.com", "api-iam.intercom.io"],
     "category": "support",
     "description": "Powers the live chat widget — also tracks your activity on the site to personalize support conversations.",
     "logo": "https://www.intercom.com/favicon.ico"
@@ -258,7 +258,7 @@
   {
     "name": "HubSpot",
     "company": "HubSpot",
-    "domains": ["hubspot.com", "hs-scripts.com", "hubspotlinks.com", "hscollectedforms.net"],
+    "domains": ["hubspot.com", "hs-scripts.com", "hubspotlinks.com", "hscollectedforms.net", "hs-banner.com"],
     "category": "marketing",
     "description": "Tracks your visits and form submissions to build a sales/marketing profile about you in their CRM.",
     "logo": "https://www.hubspot.com/favicon.ico"
@@ -266,7 +266,7 @@
   {
     "name": "Salesforce / Pardot",
     "company": "Salesforce",
-    "domains": ["salesforceliveagent.com", "pardot.com", "pi.pardot.com"],
+    "domains": ["salesforceliveagent.com", "pardot.com", "pi.pardot.com", "krux.com"],
     "category": "marketing",
     "description": "Marketing automation that links your browsing behavior to your email address if you've ever filled out a form.",
     "logo": "https://www.salesforce.com/favicon.ico"
@@ -274,9 +274,9 @@
   {
     "name": "Marketo",
     "company": "Adobe",
-    "domains": ["marketo.com", "mktoresp.com", "mkto-j0631.com"],
+    "domains": ["marketo.com", "mktoresp.com", "mktoweb.com"],
     "category": "marketing",
-    "description": "Marketing automation that tracks your visits and scores you as a potential customer.",
+    "description": "Marketing automation that tracks your visits and scores you as a potential customer for sales teams.",
     "logo": "https://www.marketo.com/favicon.ico"
   },
   {
@@ -298,7 +298,7 @@
   {
     "name": "Disqus",
     "company": "Disqus",
-    "domains": ["disqus.com", "disquscdn.com"],
+    "domains": ["disqus.com", "disquscdn.com", "referrer.disqus.com"],
     "category": "social",
     "description": "Comment system that tracks your reading and commenting behavior across all sites using Disqus.",
     "logo": "https://disqus.com/favicon.ico"
@@ -306,9 +306,9 @@
   {
     "name": "Yandex Metrica",
     "company": "Yandex",
-    "domains": ["mc.yandex.ru", "yandex.ru/metrika"],
+    "domains": ["mc.yandex.ru", "mc.yandex.com"],
     "category": "analytics",
-    "description": "Russian analytics platform that records session replays and tracks visitor behavior.",
+    "description": "Russian analytics platform that records session replays and tracks visitor behavior in detail.",
     "logo": "https://yandex.com/favicon.ico"
   },
   {
@@ -322,7 +322,7 @@
   {
     "name": "Datadog RUM",
     "company": "Datadog",
-    "domains": ["rum.browser-intake-datadoghq.com", "datadoghq.com"],
+    "domains": ["rum.browser-intake-datadoghq.com", "browser-intake-datadoghq.com"],
     "category": "performance",
     "description": "Real user monitoring that logs page load times and errors from your browser session.",
     "logo": "https://www.datadoghq.com/favicon.ico"
@@ -330,7 +330,7 @@
   {
     "name": "Sentry",
     "company": "Sentry",
-    "domains": ["sentry.io", "o*.ingest.sentry.io"],
+    "domains": ["sentry.io", "ingest.sentry.io", "o0.ingest.sentry.io"],
     "category": "performance",
     "description": "Error tracking that captures JavaScript errors and may include a breadcrumb trail of your recent actions.",
     "logo": "https://sentry.io/favicon.ico"
@@ -340,13 +340,13 @@
     "company": "Cloudflare",
     "domains": ["static.cloudflareinsights.com"],
     "category": "analytics",
-    "description": "Cloudflare's analytics that measures page load speed and visitor counts — minimal personal data.",
+    "description": "Cloudflare's analytics that measures page load speed and visitor counts — minimal personal data collected.",
     "logo": "https://www.cloudflare.com/favicon.ico"
   },
   {
     "name": "Braze",
     "company": "Braze",
-    "domains": ["braze.com", "sdk.fra-01.braze.eu", "iad-04.braze.com"],
+    "domains": ["sdk.iad-01.braze.com", "sdk.iad-03.braze.com", "sdk.fra-01.braze.eu"],
     "category": "marketing",
     "description": "Customer engagement platform that tracks your behavior to power personalized push notifications and emails.",
     "logo": "https://www.braze.com/favicon.ico"
@@ -354,7 +354,7 @@
   {
     "name": "Klaviyo",
     "company": "Klaviyo",
-    "domains": ["klaviyo.com", "static.klaviyo.com"],
+    "domains": ["klaviyo.com", "static.klaviyo.com", "a.klaviyo.com"],
     "category": "marketing",
     "description": "Email marketing tracker — links your site visits to your email address for personalized campaign targeting.",
     "logo": "https://www.klaviyo.com/favicon.ico"
@@ -362,7 +362,7 @@
   {
     "name": "Chartbeat",
     "company": "Chartbeat",
-    "domains": ["chartbeat.com", "static.chartbeat.com"],
+    "domains": ["chartbeat.com", "static.chartbeat.com", "ping.chartbeat.net"],
     "category": "analytics",
     "description": "Real-time analytics for news sites — tracks which articles you read and for how long.",
     "logo": "https://chartbeat.com/favicon.ico"
@@ -370,7 +370,7 @@
   {
     "name": "Comscore",
     "company": "Comscore",
-    "domains": ["scorecardresearch.com", "comscore.com"],
+    "domains": ["scorecardresearch.com", "comscore.com", "beacon.scorecardresearch.com"],
     "category": "analytics",
     "description": "Audience measurement company — aggregates your browsing data to sell demographic reports to media companies.",
     "logo": "https://www.comscore.com/favicon.ico"
@@ -378,7 +378,7 @@
   {
     "name": "Nielsen",
     "company": "Nielsen",
-    "domains": ["exelate.com", "nielseniq.com", "email.nielsen.com"],
+    "domains": ["exelate.com", "nlsnimg.com", "secure-dcr.imrworldwide.com"],
     "category": "analytics",
     "description": "Collects audience data to measure reach and sell market research — your visit contributes to Nielsen ratings.",
     "logo": "https://www.nielsen.com/favicon.ico"
@@ -386,7 +386,7 @@
   {
     "name": "LiveRamp",
     "company": "LiveRamp",
-    "domains": ["liveramp.com", "rlcdn.com", "realone.pipeline.com"],
+    "domains": ["liveramp.com", "rlcdn.com", "liverampapis.com"],
     "category": "advertising",
     "description": "Data broker that links your browsing to your real identity and sells that linkage to advertisers.",
     "logo": "https://liveramp.com/favicon.ico"
@@ -396,7 +396,535 @@
     "company": "Twilio",
     "domains": ["sendgrid.net", "ct.sendgrid.net"],
     "category": "marketing",
-    "description": "Email delivery service — the tracking pixel in emails tells the sender when you opened them.",
+    "description": "Email delivery service — the tracking pixel in emails reports back to the sender when you opened them.",
     "logo": "https://sendgrid.com/favicon.ico"
+  },
+  {
+    "name": "Xandr / AppNexus",
+    "company": "Microsoft Xandr",
+    "domains": ["adnxs.com", "secure.adnxs.com", "ib.adnxs.com"],
+    "category": "advertising",
+    "description": "One of the largest programmatic ad exchanges — your data is auctioned to advertisers in milliseconds as pages load.",
+    "logo": "https://www.xandr.com/favicon.ico"
+  },
+  {
+    "name": "OpenX",
+    "company": "OpenX",
+    "domains": ["openx.net", "delivery.oxgt.com", "us-u.openx.net"],
+    "category": "advertising",
+    "description": "A programmatic ad exchange that auctions your data to bidding advertisers as you load the page.",
+    "logo": "https://www.openx.com/favicon.ico"
+  },
+  {
+    "name": "Magnite / Rubicon Project",
+    "company": "Magnite",
+    "domains": ["rubiconproject.com", "fastlane.rubiconproject.com", "beacon.rubiconproject.com"],
+    "category": "advertising",
+    "description": "A sell-side ad platform that brokers your data between publishers and advertisers in real time.",
+    "logo": "https://www.magnite.com/favicon.ico"
+  },
+  {
+    "name": "Index Exchange",
+    "company": "Index Exchange",
+    "domains": ["casalemedia.com", "indexexchange.com"],
+    "category": "advertising",
+    "description": "Programmatic ad exchange that connects publishers and advertisers by sharing your browsing profile.",
+    "logo": "https://www.indexexchange.com/favicon.ico"
+  },
+  {
+    "name": "PubMatic",
+    "company": "PubMatic",
+    "domains": ["pubmatic.com", "image6.pubmatic.com"],
+    "category": "advertising",
+    "description": "Ad exchange platform that syncs your identity across advertising networks for targeted bidding.",
+    "logo": "https://pubmatic.com/favicon.ico"
+  },
+  {
+    "name": "Sovrn",
+    "company": "Sovrn",
+    "domains": ["lijit.com", "beacon.lijit.com", "sovrn.com"],
+    "category": "advertising",
+    "description": "Ad network and data platform that tracks your content interests to serve targeted ads.",
+    "logo": "https://www.sovrn.com/favicon.ico"
+  },
+  {
+    "name": "The Trade Desk",
+    "company": "The Trade Desk",
+    "domains": ["adsrvr.org", "thetradedesk.com", "match.adsrvr.org"],
+    "category": "advertising",
+    "description": "A large demand-side platform — syncs tracking cookies across ad networks to build a profile of you.",
+    "logo": "https://www.thetradedesk.com/favicon.ico"
+  },
+  {
+    "name": "MediaMath",
+    "company": "MediaMath",
+    "domains": ["mathtag.com", "pixel.mathtag.com"],
+    "category": "advertising",
+    "description": "Programmatic ad platform that uses a 'math tag' to match your identity across ad networks.",
+    "logo": "https://www.mediamath.com/favicon.ico"
+  },
+  {
+    "name": "Lotame",
+    "company": "Lotame",
+    "domains": ["crwdcntrl.net", "lotame.com", "bcp.crwdcntrl.net"],
+    "category": "advertising",
+    "description": "Data management platform that aggregates your demographic and behavioral data for ad targeting.",
+    "logo": "https://www.lotame.com/favicon.ico"
+  },
+  {
+    "name": "Oracle BlueKai",
+    "company": "Oracle",
+    "domains": ["bluekai.com", "bkrtx.com", "tags.bluekai.com"],
+    "category": "advertising",
+    "description": "Oracle's data marketplace — collects your browsing to build audience segments sold to advertisers.",
+    "logo": "https://www.oracle.com/favicon.ico"
+  },
+  {
+    "name": "AdRoll",
+    "company": "AdRoll",
+    "domains": ["adroll.com", "s.adroll.com", "d.adroll.com"],
+    "category": "advertising",
+    "description": "Retargeting platform — tracks your visits so you see ads for this site after you leave.",
+    "logo": "https://www.adroll.com/favicon.ico"
+  },
+  {
+    "name": "Moat (Oracle)",
+    "company": "Oracle",
+    "domains": ["moatads.com", "moatpixel.com", "z.moatads.com"],
+    "category": "advertising",
+    "description": "Ad measurement tool that tracks whether you actually saw an ad — collects detailed attention metrics.",
+    "logo": "https://www.oracle.com/favicon.ico"
+  },
+  {
+    "name": "Integral Ad Science (IAS)",
+    "company": "IAS",
+    "domains": ["adsafeprotected.com", "pixel.adsafeprotected.com"],
+    "category": "advertising",
+    "description": "Ad verification service that monitors your interactions with ads to confirm they were actually viewed.",
+    "logo": "https://integralads.com/favicon.ico"
+  },
+  {
+    "name": "DoubleVerify",
+    "company": "DoubleVerify",
+    "domains": ["doubleverify.com", "cdn.doubleverify.com", "pub.doubleverify.com"],
+    "category": "advertising",
+    "description": "Ad verification tracker that confirms ad viewability and measures your engagement with ads.",
+    "logo": "https://www.doubleverify.com/favicon.ico"
+  },
+  {
+    "name": "Kochava",
+    "company": "Kochava",
+    "domains": ["control.kochava.com", "kochava.com"],
+    "category": "advertising",
+    "description": "Mobile measurement and attribution platform — links your web behavior to mobile app installs.",
+    "logo": "https://www.kochava.com/favicon.ico"
+  },
+  {
+    "name": "Adjust",
+    "company": "Adjust",
+    "domains": ["app.adjust.com", "s3.adjust.com", "adjust.com"],
+    "category": "advertising",
+    "description": "Mobile attribution tracker — connects your web activity to app installs and in-app behavior.",
+    "logo": "https://www.adjust.com/favicon.ico"
+  },
+  {
+    "name": "AppsFlyer",
+    "company": "AppsFlyer",
+    "domains": ["appsflyer.com", "t.appsflyer.com", "impression.appsflyer.com"],
+    "category": "advertising",
+    "description": "Mobile attribution platform — tracks which ads and websites drove you to install or use an app.",
+    "logo": "https://www.appsflyer.com/favicon.ico"
+  },
+  {
+    "name": "Branch",
+    "company": "Branch",
+    "domains": ["branch.io", "api2.branch.io", "bnc.lt"],
+    "category": "advertising",
+    "description": "Deep linking and attribution tool — tracks your path from web to mobile app across devices.",
+    "logo": "https://www.branch.io/favicon.ico"
+  },
+  {
+    "name": "Conversant",
+    "company": "Conversant",
+    "domains": ["conversantmedia.com", "dtm.conversantmedia.com", "epsilon.com"],
+    "category": "advertising",
+    "description": "Personalized ad network that builds individual profiles of your interests for targeted retargeting.",
+    "logo": "https://www.conversantmedia.com/favicon.ico"
+  },
+  {
+    "name": "GumGum",
+    "company": "GumGum",
+    "domains": ["gumgum.com", "js.gumgum.com"],
+    "category": "advertising",
+    "description": "In-image advertising platform that analyzes the images you view to serve contextually relevant ads.",
+    "logo": "https://gumgum.com/favicon.ico"
+  },
+  {
+    "name": "Revcontent",
+    "company": "Revcontent",
+    "domains": ["revcontent.com", "trends.revcontent.com"],
+    "category": "advertising",
+    "description": "Content recommendation ad network — tracks your reading habits to serve sponsored articles.",
+    "logo": "https://www.revcontent.com/favicon.ico"
+  },
+  {
+    "name": "MGID",
+    "company": "MGID",
+    "domains": ["mgid.com", "servicer.mgid.com"],
+    "category": "advertising",
+    "description": "Native advertising platform that places sponsored content based on your browsing interests.",
+    "logo": "https://www.mgid.com/favicon.ico"
+  },
+  {
+    "name": "33Across",
+    "company": "33Across",
+    "domains": ["33across.com", "ssc.33across.com", "ssc-cms.33across.com"],
+    "category": "advertising",
+    "description": "Ad tech company that uses social data to build audience segments and target ads across the web.",
+    "logo": "https://www.33across.com/favicon.ico"
+  },
+  {
+    "name": "SpotX",
+    "company": "Magnite",
+    "domains": ["spotxchange.com", "spotx.tv", "search.spotxchange.com"],
+    "category": "advertising",
+    "description": "Video advertising platform that auctions your data for targeted video ad placements.",
+    "logo": "https://www.spotx.tv/favicon.ico"
+  },
+  {
+    "name": "FreeWheel",
+    "company": "Comcast",
+    "domains": ["freewheel.tv", "fwmrm.net", "v.fwmrm.net"],
+    "category": "advertising",
+    "description": "TV and streaming video ad platform — tracks your video viewing behavior for ad targeting.",
+    "logo": "https://www.freewheel.com/favicon.ico"
+  },
+  {
+    "name": "ID5",
+    "company": "ID5",
+    "domains": ["id5-sync.com", "id5api.com"],
+    "category": "advertising",
+    "description": "Cross-site identity resolution — creates a persistent ID linking your activity across publishers.",
+    "logo": "https://id5.io/favicon.ico"
+  },
+  {
+    "name": "LiveIntent",
+    "company": "LiveIntent",
+    "domains": ["liveintent.com", "ad.liveintent.com", "b1sync.lijit.com"],
+    "category": "advertising",
+    "description": "Links your email address to your browsing behavior to target ads based on emails you've opened.",
+    "logo": "https://liveintent.com/favicon.ico"
+  },
+  {
+    "name": "Audigent",
+    "company": "Audigent",
+    "domains": ["audigent.com", "a.audigent.com"],
+    "category": "advertising",
+    "description": "Audience data platform that builds identity graphs to match you across devices for ad targeting.",
+    "logo": "https://www.audigent.com/favicon.ico"
+  },
+  {
+    "name": "Zeotap",
+    "company": "Zeotap",
+    "domains": ["zeotap.com", "d.zeotap.com"],
+    "category": "advertising",
+    "description": "Customer intelligence platform that links your first-party data to third-party identity graphs.",
+    "logo": "https://zeotap.com/favicon.ico"
+  },
+  {
+    "name": "Matomo / Piwik",
+    "company": "Matomo",
+    "domains": ["matomo.cloud", "piwik.pro", "matomo.org"],
+    "category": "analytics",
+    "description": "Open-source analytics platform — often self-hosted and more privacy-friendly than Google Analytics, but still tracks visits.",
+    "logo": "https://matomo.org/favicon.ico"
+  },
+  {
+    "name": "Woopra",
+    "company": "Woopra",
+    "domains": ["woopra.com", "static.woopra.com"],
+    "category": "analytics",
+    "description": "Customer journey analytics that tracks individual users across your entire product lifecycle.",
+    "logo": "https://www.woopra.com/favicon.ico"
+  },
+  {
+    "name": "Kissmetrics",
+    "company": "Kissmetrics",
+    "domains": ["kissmetrics.io", "kissmetrics.com", "scripts.kissmetrics.io"],
+    "category": "analytics",
+    "description": "Ties your anonymous visits to your identity once you sign up — creating a persistent record of your behavior.",
+    "logo": "https://www.kissmetrics.io/favicon.ico"
+  },
+  {
+    "name": "Inspectlet",
+    "company": "Inspectlet",
+    "domains": ["inspectlet.com", "hn.inspectlet.com"],
+    "category": "analytics",
+    "description": "Records screen-capture videos of your sessions and tracks eye movement patterns.",
+    "logo": "https://www.inspectlet.com/favicon.ico"
+  },
+  {
+    "name": "Clicky",
+    "company": "Clicky",
+    "domains": ["getclicky.com", "static.getclicky.com", "in.getclicky.com"],
+    "category": "analytics",
+    "description": "Real-time web analytics that tracks individual visitor sessions including heatmaps.",
+    "logo": "https://clicky.com/favicon.ico"
+  },
+  {
+    "name": "StatCounter",
+    "company": "StatCounter",
+    "domains": ["statcounter.com", "c.statcounter.com"],
+    "category": "analytics",
+    "description": "Web analytics service that logs every page view along with your browser, OS, and location.",
+    "logo": "https://statcounter.com/favicon.ico"
+  },
+  {
+    "name": "Parse.ly",
+    "company": "Automattic",
+    "domains": ["parsely.com", "srv.pixel.parsely.com", "api.parsely.com"],
+    "category": "analytics",
+    "description": "Content analytics for media sites — tracks which articles you read and how long you spent on each.",
+    "logo": "https://www.parsely.com/favicon.ico"
+  },
+  {
+    "name": "Pendo",
+    "company": "Pendo",
+    "domains": ["pendo.io", "cdn.pendo.io", "app.pendo.io", "data.pendo.io"],
+    "category": "analytics",
+    "description": "Product analytics that tracks every click inside a web app to help companies understand feature usage.",
+    "logo": "https://www.pendo.io/favicon.ico"
+  },
+  {
+    "name": "Tealium",
+    "company": "Tealium",
+    "domains": ["tiqcdn.com", "tags.tiqcdn.com", "collect.tealiumiq.com"],
+    "category": "analytics",
+    "description": "Tag management and data platform that routes your behavioral data to dozens of other tracking tools.",
+    "logo": "https://tealium.com/favicon.ico"
+  },
+  {
+    "name": "mParticle",
+    "company": "mParticle",
+    "domains": ["mparticle.com", "jssdks.mparticle.com", "identity.mparticle.com"],
+    "category": "analytics",
+    "description": "Customer data platform that collects your behavior and fans it out to advertising and analytics services.",
+    "logo": "https://www.mparticle.com/favicon.ico"
+  },
+  {
+    "name": "PostHog",
+    "company": "PostHog",
+    "domains": ["posthog.com", "us.i.posthog.com", "app.posthog.com", "eu.i.posthog.com"],
+    "category": "analytics",
+    "description": "Open-source product analytics that records events, replays sessions, and runs feature experiments.",
+    "logo": "https://posthog.com/favicon.ico"
+  },
+  {
+    "name": "Contentsquare",
+    "company": "Contentsquare",
+    "domains": ["contentsquare.net", "t.contentsquare.net"],
+    "category": "analytics",
+    "description": "Digital experience analytics — records how you scroll, move, and interact with every element on the page.",
+    "logo": "https://contentsquare.com/favicon.ico"
+  },
+  {
+    "name": "AB Tasty",
+    "company": "AB Tasty",
+    "domains": ["abtasty.com", "try.abtasty.com"],
+    "category": "analytics",
+    "description": "A/B testing and personalization platform that shows different page variants to different users.",
+    "logo": "https://www.abtasty.com/favicon.ico"
+  },
+  {
+    "name": "Dynamic Yield",
+    "company": "Mastercard",
+    "domains": ["dynamicyield.com", "cdn.dynamicyield.com", "st.dynamicyield.com"],
+    "category": "marketing",
+    "description": "Personalization engine that changes what content you see based on your profile and prior behavior.",
+    "logo": "https://www.dynamicyield.com/favicon.ico"
+  },
+  {
+    "name": "Eloqua (Oracle)",
+    "company": "Oracle",
+    "domains": ["eloqua.com", "img.en25.com"],
+    "category": "marketing",
+    "description": "B2B marketing automation that scores you as a sales prospect based on your web activity.",
+    "logo": "https://www.oracle.com/favicon.ico"
+  },
+  {
+    "name": "ActiveCampaign",
+    "company": "ActiveCampaign",
+    "domains": ["activecampaign.com", "trackcmp.net"],
+    "category": "marketing",
+    "description": "Email marketing and CRM that ties your site visits to your email address for automated follow-ups.",
+    "logo": "https://www.activecampaign.com/favicon.ico"
+  },
+  {
+    "name": "Mailchimp",
+    "company": "Intuit Mailchimp",
+    "domains": ["mailchimp.com", "chimpstatic.com", "list-manage.com"],
+    "category": "marketing",
+    "description": "Email marketing platform — tracks email opens, link clicks, and sometimes on-site behavior for campaigns.",
+    "logo": "https://mailchimp.com/favicon.ico"
+  },
+  {
+    "name": "Drip",
+    "company": "Drip",
+    "domains": ["getdrip.com", "tag.getdrip.com"],
+    "category": "marketing",
+    "description": "E-commerce email marketing that tracks your browsing and purchase behavior to trigger automated emails.",
+    "logo": "https://www.drip.com/favicon.ico"
+  },
+  {
+    "name": "Iterable",
+    "company": "Iterable",
+    "domains": ["iterable.com", "js.iterable.com"],
+    "category": "marketing",
+    "description": "Cross-channel marketing automation that builds a profile of your behavior to send personalized campaigns.",
+    "logo": "https://iterable.com/favicon.ico"
+  },
+  {
+    "name": "Emarsys (SAP)",
+    "company": "SAP",
+    "domains": ["scarabresearch.com", "cdn.scarabresearch.com"],
+    "category": "marketing",
+    "description": "E-commerce personalization platform that tracks your product views to recommend items and send triggered emails.",
+    "logo": "https://emarsys.com/favicon.ico"
+  },
+  {
+    "name": "LiveChat",
+    "company": "LiveChat",
+    "domains": ["livechat.com", "cdn.livechat.com"],
+    "category": "support",
+    "description": "Live chat widget that logs your conversations and may track your on-site behavior before you chat.",
+    "logo": "https://www.livechat.com/favicon.ico"
+  },
+  {
+    "name": "Freshchat / Freshworks",
+    "company": "Freshworks",
+    "domains": ["freshchat.com", "wchat.freshchat.com", "euc-widget.freshworks.com"],
+    "category": "support",
+    "description": "Customer chat platform that tracks your activity on the site to provide context to support agents.",
+    "logo": "https://www.freshworks.com/favicon.ico"
+  },
+  {
+    "name": "Olark",
+    "company": "Olark",
+    "domains": ["olark.com", "static.olark.com"],
+    "category": "support",
+    "description": "Live chat widget that shows support agents your current page, location, and browsing history on the site.",
+    "logo": "https://www.olark.com/favicon.ico"
+  },
+  {
+    "name": "Tawk.to",
+    "company": "Tawk.to",
+    "domains": ["tawk.to", "embed.tawk.to", "va.tawk.to"],
+    "category": "support",
+    "description": "Free live chat service that tracks visitor activity and shows agents your page history in real time.",
+    "logo": "https://www.tawk.to/favicon.ico"
+  },
+  {
+    "name": "Tidio",
+    "company": "Tidio",
+    "domains": ["tidio.com", "code.tidio.co", "widget.tidio.com"],
+    "category": "support",
+    "description": "Live chat and chatbot widget that tracks your behavior on the site before and during support conversations.",
+    "logo": "https://www.tidio.com/favicon.ico"
+  },
+  {
+    "name": "Crisp",
+    "company": "Crisp",
+    "domains": ["crisp.chat", "client.crisp.chat"],
+    "category": "support",
+    "description": "Customer messaging platform that tracks your browsing session to give agents context about your visit.",
+    "logo": "https://crisp.chat/favicon.ico"
+  },
+  {
+    "name": "Help Scout",
+    "company": "Help Scout",
+    "domains": ["helpscout.net", "beacon-v2.helpscout.net"],
+    "category": "support",
+    "description": "Customer support tool whose beacon widget logs your visits and links them to your support history.",
+    "logo": "https://www.helpscout.com/favicon.ico"
+  },
+  {
+    "name": "YouTube Embeds",
+    "company": "Google",
+    "domains": ["youtube.com", "googlevideo.com", "ytimg.com"],
+    "category": "social",
+    "description": "Embedded YouTube videos let Google track which videos you watch and link that to your Google account.",
+    "logo": "https://www.youtube.com/favicon.ico"
+  },
+  {
+    "name": "Vimeo Embeds",
+    "company": "Vimeo",
+    "domains": ["vimeo.com", "player.vimeo.com", "vimeocdn.com"],
+    "category": "social",
+    "description": "Embedded Vimeo videos can track your viewing behavior and link it to your Vimeo account if logged in.",
+    "logo": "https://vimeo.com/favicon.ico"
+  },
+  {
+    "name": "Twitter / X Widgets",
+    "company": "X Corp",
+    "domains": ["platform.twitter.com", "syndication.twitter.com"],
+    "category": "social",
+    "description": "Embedded tweets and follow buttons let Twitter track your visit even if you don't click anything.",
+    "logo": "https://twitter.com/favicon.ico"
+  },
+  {
+    "name": "Typekit / Adobe Fonts",
+    "company": "Adobe",
+    "domains": ["use.typekit.net", "p.typekit.net"],
+    "category": "analytics",
+    "description": "Adobe's font hosting service — logs which pages use their fonts, which can function as a tracking beacon.",
+    "logo": "https://www.adobe.com/favicon.ico"
+  },
+  {
+    "name": "Spotify Embeds",
+    "company": "Spotify",
+    "domains": ["open.spotify.com"],
+    "category": "social",
+    "description": "Embedded Spotify players let Spotify know which sites you visit and what content you listen to.",
+    "logo": "https://www.spotify.com/favicon.ico"
+  },
+  {
+    "name": "Bugsnag",
+    "company": "Bugsnag",
+    "domains": ["bugsnag.com", "notify.bugsnag.com", "sessions.bugsnag.com"],
+    "category": "performance",
+    "description": "Error monitoring that captures crash reports and may include a trail of recent user actions as context.",
+    "logo": "https://www.bugsnag.com/favicon.ico"
+  },
+  {
+    "name": "Rollbar",
+    "company": "Rollbar",
+    "domains": ["rollbar.com", "api.rollbar.com"],
+    "category": "performance",
+    "description": "Error tracking service that logs JavaScript errors and includes breadcrumbs of your prior actions.",
+    "logo": "https://rollbar.com/favicon.ico"
+  },
+  {
+    "name": "Dynatrace",
+    "company": "Dynatrace",
+    "domains": ["dynatrace.com", "bf.dynatrace.com"],
+    "category": "performance",
+    "description": "Application performance monitoring with real user monitoring — captures timing data from your browser session.",
+    "logo": "https://www.dynatrace.com/favicon.ico"
+  },
+  {
+    "name": "Lucky Orange",
+    "company": "Lucky Orange",
+    "domains": ["luckyorange.com", "d10lpsik1i8c69.cloudfront.net"],
+    "category": "analytics",
+    "description": "Session recording and heatmap tool — watches your every move on the page including typed text in some cases.",
+    "logo": "https://www.luckyorange.com/favicon.ico"
+  },
+  {
+    "name": "Customer.io",
+    "company": "Customer.io",
+    "domains": ["customer.io", "track.customer.io"],
+    "category": "marketing",
+    "description": "Behavioral email platform — tracks your actions on the site to trigger automated, personalized email sequences.",
+    "logo": "https://customer.io/favicon.ico"
   }
 ]

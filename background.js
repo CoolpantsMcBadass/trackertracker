@@ -4,6 +4,7 @@
 const tabTrackers = new Map(); // tabId -> Map(trackerName -> trackerInfo)
 const tabBannerStatus = new Map(); // tabId -> { found: bool, declined: bool }
 const disabledSites = new Set(); // hostnames where Cookiecutter is disabled
+const pushTimers = new Map(); // tabId -> debounce timer for overlay push
 
 let trackerList = [];
 let domainIndex = new Map(); // domain fragment -> tracker entry
@@ -64,11 +65,28 @@ chrome.webRequest.onBeforeRequest.addListener(
     }
 
     const trackers = tabTrackers.get(details.tabId);
+    const isNew = !trackers.has(tracker.name);
     trackers.set(tracker.name, tracker);
     updateBadge(details.tabId);
+
+    if (isNew) schedulePush(details.tabId);
   },
   { urls: ["<all_urls>"] }
 );
+
+// Debounced push to overlay content script
+function schedulePush(tabId) {
+  clearTimeout(pushTimers.get(tabId));
+  pushTimers.set(tabId, setTimeout(() => {
+    pushTimers.delete(tabId);
+    const trackers = tabTrackers.get(tabId);
+    if (!trackers) return;
+    chrome.tabs.sendMessage(tabId, {
+      type: "TRACKER_UPDATE",
+      trackers: Array.from(trackers.values()),
+    }).catch(() => {}); // tab may not have content script (e.g. chrome:// pages)
+  }, 400));
+}
 
 // Clear tracker data when tab navigates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -99,13 +117,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg.type === "GET_MY_TAB_DATA") {
+    // Called by the overlay on load — sender.tab.id is the current tab
+    const tabId = sender.tab?.id;
+    if (tabId == null) { sendResponse(null); return true; }
+    const trackers = tabTrackers.get(tabId) || new Map();
+    const banner = tabBannerStatus.get(tabId) || { found: false, declined: false };
+    sendResponse({ trackers: Array.from(trackers.values()), banner });
+    return true;
+  }
+
   if (msg.type === "BANNER_STATUS") {
     const tabId = sender.tab?.id;
     if (tabId != null) {
-      tabBannerStatus.set(tabId, {
-        found: msg.found,
-        declined: msg.declined,
-      });
+      const status = { found: msg.found, declined: msg.declined };
+      tabBannerStatus.set(tabId, status);
+      // Push banner update to overlay
+      chrome.tabs.sendMessage(tabId, { type: "BANNER_STATUS_UPDATE", ...status }).catch(() => {});
     }
     return false;
   }
