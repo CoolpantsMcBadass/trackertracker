@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.4.1] 2026-05-29
+- overlay.js: added click-and-drag to reposition the widget anywhere on screen; pill and panel header both act as drag handles; 4px movement threshold distinguishes drag from click so toggle still works; cursor changes to grabbing during drag; tooltip hides during drag; position persisted to chrome.storage.local and restored on next page load with viewport clamping
+
 [0.4.0] 2026-05-29
 - data/trackers.json: expanded from 154 to 241 trackers (+87) — added full coverage of:
   Ad exchanges: Adform, BidSwitch, Amobee, DataXu/Roku OneView, Undertone/Perion, EMX Digital, RhythmOne, Zedo, LoopMe, AppLovin, InMobi, Digital Turbine, Unity Ads/IronSource, Kargo, Bombora, Carbon Ads, BuySellAds, Ezoic, Mediavine, Raptive/AdThrive

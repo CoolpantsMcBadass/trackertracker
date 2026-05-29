@@ -49,6 +49,7 @@
         white-space: nowrap;
       }
       .cc-pill:hover { background: #27272a; border-color: #52525b; }
+      .cc-pill.dragging { cursor: grabbing !important; }
 
       .cc-icon {
         width: 18px;
@@ -516,25 +517,117 @@
     panel.classList.remove("open");
   }
 
-  pill.addEventListener("click", (e) => {
+  // ── Drag logic ────────────────────────────────────────────────────────────
+
+  let dragging = false;
+  let didDrag  = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  const DRAG_THRESHOLD = 4; // px of movement before it's considered a drag
+
+  function startDrag(e) {
+    if (e.button !== 0) return;
+    e.preventDefault();
     e.stopPropagation();
-    if (expanded) {
-      closePanel();
-    } else {
-      openPanel();
+
+    const rect = host.getBoundingClientRect();
+    dragStartX  = e.clientX;
+    dragStartY  = e.clientY;
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    dragging    = true;
+    didDrag     = false;
+
+    // Convert right-based to left-based so we can move freely
+    host.style.right = "";
+    host.style.left  = rect.left + "px";
+    host.style.top   = rect.top  + "px";
+
+    pill.classList.add("dragging");
+    document.addEventListener("mousemove", onDragMove);
+    document.addEventListener("mouseup",   onDragEnd);
+  }
+
+  function onDragMove(e) {
+    if (!dragging) return;
+
+    if (!didDrag) {
+      const dx = Math.abs(e.clientX - dragStartX);
+      const dy = Math.abs(e.clientY - dragStartY);
+      if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) didDrag = true;
     }
-  });
+    if (!didDrag) return;
+
+    sharedTooltip.classList.remove("visible"); // hide tooltip while dragging
+
+    const x = e.clientX - dragOffsetX;
+    const y = e.clientY - dragOffsetY;
+
+    const maxX = window.innerWidth  - host.offsetWidth;
+    const maxY = window.innerHeight - host.offsetHeight;
+
+    host.style.left = Math.max(0, Math.min(x, maxX)) + "px";
+    host.style.top  = Math.max(0, Math.min(y, maxY)) + "px";
+  }
+
+  function onDragEnd(e) {
+    if (!dragging) return;
+    dragging = false;
+    pill.classList.remove("dragging");
+
+    document.removeEventListener("mousemove", onDragMove);
+    document.removeEventListener("mouseup",   onDragEnd);
+
+    if (didDrag) {
+      // Persist position so it survives page navigations
+      const rect = host.getBoundingClientRect();
+      chrome.storage.local.set({
+        overlayPos: { left: rect.left, top: rect.top }
+      });
+    } else {
+      // No meaningful movement — treat as a click
+      if (expanded) closePanel();
+      else openPanel();
+    }
+  }
+
+  // Attach drag to pill and panel header (both act as drag handles)
+  pill.addEventListener("mousedown", startDrag);
+  shadow.getElementById("cc-panel-header") && shadow.getElementById("cc-panel-header").addEventListener("mousedown", startDrag);
+
+  // Give the panel header an id so we can grab it
+  const panelHeader = panel.querySelector(".cc-panel-header");
+  if (panelHeader) {
+    panelHeader.style.cursor = "grab";
+    panelHeader.addEventListener("mousedown", startDrag);
+  }
 
   closeBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     closePanel();
   });
 
-  // Close on outside click
+  // Close on outside click (only if not dragging)
   document.addEventListener("click", (e) => {
+    if (didDrag) return;
     if (!host.contains(e.target) && expanded) {
       closePanel();
     }
+  });
+
+  // Restore saved position
+  chrome.storage.local.get("overlayPos", (data) => {
+    if (!data.overlayPos) return;
+    const { left, top } = data.overlayPos;
+    // Clamp to current viewport in case window was resized
+    const maxX = window.innerWidth  - host.offsetWidth  - 2;
+    const maxY = window.innerHeight - host.offsetHeight - 2;
+    host.style.right = "";
+    host.style.left  = Math.max(0, Math.min(left, maxX)) + "px";
+    host.style.top   = Math.max(0, Math.min(top,  maxY)) + "px";
   });
 
   // ── Communication with background ─────────────────────────────────────────
