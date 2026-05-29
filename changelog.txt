@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.3.1] 2026-05-29
+- overlay.js: tracker list now shows logo + name only; description moved to CSS tooltip that appears to the left on hover; items vertically centered; cursor changed to help
+
 [0.3.0] 2026-05-29
 - overlay.js: moved pill from bottom-right to top-right (top: 20px); panel now drops down below pill
 - data/trackers.json: expanded from 120 to 157 trackers — added Teads, Unruly, Tremor Video, TripleLift, Sharethrough, Nativo, Connatix, Innovid, Yahoo/Oath DSP, Quora Pixel, Wistia, Vidyard, JW Player, Brightcove, Leadfeeder/Dealfront, Albacross, Clearbit Reveal, Demandbase, 6sense, Adobe Analytics/Omniture, Adobe Audience Manager, Neustar/TransUnion, Acxiom, Perfect Audience, Salesloft, Outreach.io, Samba TV, GoSquared, etracker, Histats, Yieldmo, Smart AdServer/Equativ, Extreme Reach, Pubstack, Seedtag, Fathom Analytics, Simple Analytics, Plausible

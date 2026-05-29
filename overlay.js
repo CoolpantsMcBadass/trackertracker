@@ -192,12 +192,13 @@
 
       .cc-tracker-item {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 7px;
         padding: 6px 11px;
-        cursor: default;
+        cursor: help;
         transition: background 0.1s;
         border-radius: 0;
+        position: relative;
       }
       .cc-tracker-item:hover { background: #27272a; }
 
@@ -233,7 +234,6 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        margin-bottom: 1px;
       }
 
       .cc-tracker-name {
@@ -265,12 +265,27 @@
       .cat-performance { background:#1c2a1c; color:#a3d9a5; }
       .cat-other       { background:#27272a; color:#a1a1aa; }
 
-      .cc-tracker-desc {
-        font-size: 10px;
-        color: #71717a;
-        line-height: 1.35;
+      .cc-tooltip {
+        display: none;
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 210px;
+        background: #09090b;
+        border: 1px solid #52525b;
+        border-radius: 6px;
+        padding: 7px 9px;
+        font-size: 11px;
+        color: #d4d4d8;
+        line-height: 1.4;
+        pointer-events: none;
+        z-index: 10;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        white-space: normal;
       }
+      .cc-tracker-item:hover .cc-tooltip { display: block; }
 
       .cc-empty {
         font-size: 11px;
@@ -441,12 +456,14 @@
       nameRow.appendChild(name);
       nameRow.appendChild(cat);
 
-      const desc = document.createElement("div");
-      desc.className = "cc-tracker-desc";
-      desc.textContent = t.description || "";
-
       text.appendChild(nameRow);
-      text.appendChild(desc);
+
+      if (t.description) {
+        const tooltip = document.createElement("div");
+        tooltip.className = "cc-tooltip";
+        tooltip.textContent = t.description;
+        item.appendChild(tooltip);
+      }
 
       item.appendChild(logo);
       item.appendChild(text);
