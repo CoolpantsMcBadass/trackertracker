@@ -1,5 +1,50 @@
-Cookiecutter Changelog
-======================
+TrackerTracker Changelog
+========================
+
+[0.6.3] 2026-05-29
+- background.js: toolbar badge now uses yellow bg (#f2e840) with dark text (#1a1a1a) via setBadgeTextColor; matches icon palette
+- overlay.js: pill badge text changed to #e8f0ff (white-ish) in dark mode; dark (#111827) in light mode to fix yellow-on-white readability issue
+
+[0.6.2] 2026-05-29
+- overlay.js: badge redesign — removed red pill background, now shows plain number in yellow (#f2e840); zero state shows dim color only
+- overlay.js: block-all toggle replaced with native checkbox (accent-color #f2e840); removed non-functional cc-toggle-track span from the label
+- icons: Plankton flat-style icon (wing eyebrow touching sclera) exported at 16/48/128px; note Chrome toolbar icon requires extension reload at chrome://extensions to update
+
+[0.6.1] 2026-05-29
+- overlay.js, popup.css: swapped blue accent (#3b82f6) for Plankton eye yellow (#f2e840); darker variant updated to #c8ba00 for light mode; ties UI accent directly to icon color
+
+[0.6.0] 2026-05-29
+- icons/: replaced cookie-with-knife with Plankton's eye (green skin bg, yellow sclera, red iris, single lash) — exported at 16/48/128px via Inkscape
+- overlay.js: replaced inline cookie SVG (pill + panel header) with Plankton eye SVG; full palette swap — zinc/amber → navy/blue: bg #0d1117, surface #111827, border #1e2d42, accent #3b82f6, text #e8f0ff, muted #8b9abf
+- popup.css: updated :root CSS variables to match new navy/blue palette
+
+[0.5.5] 2026-05-29
+- Renamed: Cookiecutter → TrackerTracker across manifest.json, popup.html, popup.js, overlay.js, background.js; host element id updated to trackertracker-host; description updated; action title updated
+
+[0.5.4] 2026-05-29
+- overlay.js: fixed settings popout closing on inner clicks — root cause was composedPath() being pruned by closed shadow DOM for document-level listeners; replaced with two-listener strategy: document listener checks e.target !== host (detects truly outside clicks), shadow root listener uses composedPath() unpruned to close settings when clicking inside shadow but outside the popout
+- overlay.js: added "Blocked only" checkbox to blocklist section, checked by default; unchecking shows all 241 trackers; search filter applies on top of blocked-only filter; toggling a tracker re-renders the list respecting current filter state; amber accent-color on native checkbox
+
+[0.5.3] 2026-05-29
+- overlay.js: fixed settings popout closing on any click inside it — root cause was the outside-click handler using e.target/.contains() which shadow DOM retargets to the host element, making every inner click look like an outside click; replaced with e.composedPath() which pierces shadow boundaries and returns the real event path
+
+[0.5.2] 2026-05-29
+- background.js: added GET_ALL_TRACKERS handler (returns full trackerList to content scripts)
+- overlay.js: settings popout widened to 270px; added "Tracker blocklist" section at bottom with: filter search box, scrollable list of all 241 known trackers sorted alphabetically, per-tracker block toggle (reuses existing toggle CSS), live "N blocked" count badge, search filters by name or category; blocklist lazily fetched and cached on first settings open; toggling a tracker updates blockedSet and re-renders the page tracker list if open; light mode overrides added for all new elements
+
+[0.5.1] 2026-05-29
+- overlay.js: added "Block all" toggle in the tracker count row; checked when all detected trackers are blocked, unchecked otherwise; hidden when no trackers present; toggling ON blocks every unblocked tracker in parallel, toggling OFF unblocks all; re-renders rows when complete; light mode CSS override for label
+
+[0.5.0] 2026-05-29
+- manifest.json: added declarativeNetRequest permission
+- background.js: per-tracker blocking via chrome.declarativeNetRequest.updateDynamicRules; domainToRuleId() derives stable integer rule IDs from domain strings (range 10000–59999); addBlockRules/removeBlockRules manage dynamic rules; blocked tracker names+domains persisted to chrome.storage.local as blockedTrackers; rules restored on service worker startup; new message handlers: BLOCK_TRACKER, UNBLOCK_TRACKER, GET_BLOCKED_TRACKERS
+- overlay.js: added blockedSet state; each tracker row gets a ⊘ block button (hidden until hover, turns red when blocked); clicking toggles BLOCK_TRACKER/UNBLOCK_TRACKER messages; blocked rows show name strikethrough + faded logo/badge; blocked state fetched from background on init via GET_BLOCKED_TRACKERS; light mode CSS overrides for block button added
+
+[0.4.7] 2026-05-29
+- overlay.js: reverted OS-preference detection — prefers-color-scheme picks up "device default" from Chrome which resolves to light on light-mode devices, overriding the intended dark default; dark is now unconditional default when no overlayTheme is saved; user can opt into light via the settings toggle
+
+[0.4.6] 2026-05-29
+- overlay.js: theme now defaults to OS preference (prefers-color-scheme) on first load instead of hardcoded dark; saved overlayTheme still takes priority when present
 
 [0.4.5] 2026-05-29
 - overlay.js: added light/dark mode toggle in settings popout; dark is default; toggling adds/removes cc-light class on the shadow host; all overlay elements (pill, panel, header, badges, category labels, tracker logos, tooltip, settings popout) re-skin via :host(.cc-light) CSS overrides; preference persisted to chrome.storage.local as overlayTheme

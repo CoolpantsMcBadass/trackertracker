@@ -1,4 +1,4 @@
-// Cookiecutter — Popup Script
+// TrackerTracker — Popup Script
 
 const CATEGORY_LABELS = {
   advertising: "Ads",

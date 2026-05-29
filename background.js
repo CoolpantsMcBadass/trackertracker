@@ -1,10 +1,62 @@
-// Cookiecutter — Service Worker
+// TrackerTracker — Service Worker
 // Intercepts network requests, matches against tracker list, updates badge
 
 const tabTrackers = new Map(); // tabId -> Map(trackerName -> trackerInfo)
 const tabBannerStatus = new Map(); // tabId -> { found: bool, declined: bool }
 const disabledSites = new Set(); // hostnames where Cookiecutter is disabled
 const pushTimers = new Map(); // tabId -> debounce timer for overlay push
+const blockedTrackers = new Map(); // trackerName -> domains[]
+
+// ── Blocking via declarativeNetRequest ───────────────────────────────────────
+
+// Derive a stable integer rule ID from a domain string (range 10000–59999)
+function domainToRuleId(domain) {
+  let hash = 0;
+  for (let i = 0; i < domain.length; i++) {
+    hash = ((hash << 5) - hash) + domain.charCodeAt(i);
+    hash |= 0;
+  }
+  return 10000 + Math.abs(hash) % 50000;
+}
+
+const BLOCK_RESOURCE_TYPES = [
+  "script", "xmlhttprequest", "image", "stylesheet",
+  "font", "media", "websocket", "ping", "sub_frame", "other"
+];
+
+async function addBlockRules(domains) {
+  const rules = domains.map(domain => ({
+    id: domainToRuleId(domain),
+    priority: 2,
+    action: { type: "block" },
+    condition: { urlFilter: `||${domain}`, resourceTypes: BLOCK_RESOURCE_TYPES }
+  }));
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: rules.map(r => r.id),
+    addRules: rules,
+  });
+}
+
+async function removeBlockRules(domains) {
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: domains.map(domainToRuleId),
+  });
+}
+
+function saveBlockedTrackers() {
+  const obj = {};
+  for (const [name, domains] of blockedTrackers) obj[name] = domains;
+  chrome.storage.local.set({ blockedTrackers: obj });
+}
+
+// Restore blocked rules from storage on SW startup
+chrome.storage.local.get("blockedTrackers", async (data) => {
+  if (!data.blockedTrackers) return;
+  for (const [name, domains] of Object.entries(data.blockedTrackers)) {
+    blockedTrackers.set(name, domains);
+    await addBlockRules(domains);
+  }
+});
 
 let trackerList = [];
 let domainIndex = new Map(); // domain fragment -> tracker entry
@@ -38,10 +90,10 @@ function updateBadge(tabId) {
   const trackers = tabTrackers.get(tabId);
   const count = trackers ? trackers.size : 0;
   const text = count > 0 ? String(count) : "";
-  const color = count > 0 ? "#e74c3c" : "#888888";
 
   chrome.action.setBadgeText({ text, tabId });
-  chrome.action.setBadgeBackgroundColor({ color, tabId });
+  chrome.action.setBadgeBackgroundColor({ color: "#f2e840", tabId });
+  chrome.action.setBadgeTextColor({ color: "#1a1a1a", tabId });
 }
 
 chrome.runtime.onInstalled.addListener(loadTrackers);
@@ -157,6 +209,37 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   if (msg.type === "IS_SITE_DISABLED") {
     sendResponse({ disabled: disabledSites.has(msg.host) });
+    return true;
+  }
+
+  if (msg.type === "GET_BLOCKED_TRACKERS") {
+    sendResponse({ blocked: Array.from(blockedTrackers.keys()) });
+    return true;
+  }
+
+  if (msg.type === "GET_ALL_TRACKERS") {
+    sendResponse({ trackers: trackerList });
+    return true;
+  }
+
+  if (msg.type === "BLOCK_TRACKER") {
+    const tracker = trackerList.find(t => t.name === msg.name);
+    if (!tracker) { sendResponse({ ok: false }); return true; }
+    blockedTrackers.set(tracker.name, tracker.domains);
+    addBlockRules(tracker.domains).then(() => {
+      saveBlockedTrackers();
+      sendResponse({ ok: true });
+    });
+    return true;
+  }
+
+  if (msg.type === "UNBLOCK_TRACKER") {
+    const domains = blockedTrackers.get(msg.name) || [];
+    blockedTrackers.delete(msg.name);
+    removeBlockRules(domains).then(() => {
+      saveBlockedTrackers();
+      sendResponse({ ok: true });
+    });
     return true;
   }
 });

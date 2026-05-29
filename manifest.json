@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Cookiecutter",
-  "version": "0.4.5",
-  "description": "Auto-declines cookie banners and shows you exactly what's tracking you — in plain English.",
+  "name": "TrackerTracker",
+  "version": "0.6.3",
+  "description": "See exactly what's tracking you — in plain English. Blocks trackers one by one or all at once.",
   "permissions": [
     "webRequest",
     "storage",
     "tabs",
     "activeTab",
-    "scripting"
+    "scripting",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -25,7 +26,7 @@
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "Cookiecutter",
+    "default_title": "TrackerTracker",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

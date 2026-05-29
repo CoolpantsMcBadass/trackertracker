@@ -1,22 +1,23 @@
-// Cookiecutter — Page Overlay
+// TrackerTracker — Page Overlay
 // Injects a floating icon into pages that expands to show live tracker info.
 // Uses Shadow DOM for complete style isolation.
 
 (function () {
   "use strict";
 
-  if (document.getElementById("cookiecutter-host")) return; // already injected
+  if (document.getElementById("trackertracker-host")) return; // already injected
 
   // ── State ────────────────────────────────────────────────────────────────
 
   let trackers = [];
   let bannerStatus = { found: false, declined: false };
   let expanded = false;
+  let blockedSet = new Set(); // tracker names the user has blocked
 
   // ── Shadow DOM setup ─────────────────────────────────────────────────────
 
   const host = document.createElement("div");
-  host.id = "cookiecutter-host";
+  host.id = "trackertracker-host";
   Object.assign(host.style, {
     position: "fixed",
     top: "20px",
@@ -38,8 +39,8 @@
         display: flex;
         align-items: center;
         gap: 5px;
-        background: #18181b;
-        border: 1px solid #3f3f46;
+        background: #0d1117;
+        border: 1px solid #1e2d42;
         border-radius: 20px;
         padding: 6px 10px 6px 8px;
         cursor: pointer;
@@ -48,7 +49,7 @@
         transition: background 0.15s, border-color 0.15s;
         white-space: nowrap;
       }
-      .cc-pill:hover { background: #27272a; border-color: #52525b; }
+      .cc-pill:hover { background: #111827; border-color: #374d6a; }
       .cc-pill.dragging { cursor: grabbing !important; }
 
       .cc-icon {
@@ -58,20 +59,12 @@
       }
 
       .cc-badge {
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
-        color: #f4f4f5;
-        background: #e74c3c;
-        border-radius: 10px;
-        min-width: 18px;
-        height: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 4px;
+        color: #e8f0ff;
         line-height: 1;
       }
-      .cc-badge.zero { background: #3f3f46; color: #a1a1aa; }
+      .cc-badge.zero { color: #374d6a; }
 
       /* ── Panel ── */
       .cc-panel {
@@ -79,8 +72,8 @@
         top: calc(100% + 8px);
         right: 0;
         width: 260px;
-        background: #18181b;
-        border: 1px solid #3f3f46;
+        background: #0d1117;
+        border: 1px solid #1e2d42;
         border-radius: 10px;
         box-shadow: 0 4px 24px rgba(0,0,0,0.6);
         overflow: hidden;
@@ -94,7 +87,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 9px 11px;
-        border-bottom: 1px solid #3f3f46;
+        border-bottom: 1px solid #1e2d42;
       }
 
       .cc-panel-title-row {
@@ -112,7 +105,7 @@
       .cc-panel-title {
         font-size: 12px;
         font-weight: 700;
-        color: #f4f4f5;
+        color: #e8f0ff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         letter-spacing: -0.01em;
       }
@@ -126,7 +119,7 @@
       .cc-close, .cc-settings-btn {
         background: none;
         border: none;
-        color: #71717a;
+        color: #5b7a9e;
         cursor: pointer;
         padding: 0;
         line-height: 1;
@@ -141,15 +134,15 @@
       }
       .cc-close { font-size: 13px; }
       .cc-settings-btn { font-size: 14px; }
-      .cc-close:hover, .cc-settings-btn:hover { color: #f4f4f5; background: #3f3f46; }
-      .cc-settings-btn.active { color: #f59e0b; background: #3f3f46; }
+      .cc-close:hover, .cc-settings-btn:hover { color: #e8f0ff; background: #1e2d42; }
+      .cc-settings-btn.active { color: #f2e840; background: #1e2d42; }
 
       /* ── Settings popout (floating, lives at shadow root level) ── */
       .cc-settings-popout {
         position: fixed;
-        width: 210px;
-        background: #18181b;
-        border: 1px solid #3f3f46;
+        width: 270px;
+        background: #0d1117;
+        border: 1px solid #1e2d42;
         border-radius: 10px;
         box-shadow: 0 6px 24px rgba(0,0,0,0.65);
         z-index: 2147483647;
@@ -171,7 +164,7 @@
         left: 100%;
         top: 14px;
         border: 7px solid transparent;
-        border-left-color: #3f3f46;
+        border-left-color: #1e2d42;
       }
       .cc-settings-popout::after {
         content: "";
@@ -180,15 +173,15 @@
         top: 14px;
         margin-left: -1px;
         border: 6px solid transparent;
-        border-left-color: #18181b;
+        border-left-color: #0d1117;
       }
 
       .cc-sp-header {
         padding: 8px 11px 7px;
-        border-bottom: 1px solid #3f3f46;
+        border-bottom: 1px solid #1e2d42;
         font-size: 11px;
         font-weight: 700;
-        color: #a1a1aa;
+        color: #8b9abf;
         letter-spacing: 0.05em;
         text-transform: uppercase;
       }
@@ -206,7 +199,7 @@
       }
       .cc-setting-sub {
         font-size: 10px;
-        color: #71717a;
+        color: #5b7a9e;
         margin-top: 1px;
       }
       .cc-setting-text { display: flex; flex-direction: column; }
@@ -227,12 +220,12 @@
         display: block;
         width: 30px;
         height: 17px;
-        background: #3f3f46;
+        background: #1e2d42;
         border-radius: 17px;
         position: relative;
         transition: background 0.2s;
       }
-      .cc-toggle-wrap input:checked + .cc-toggle-track { background: #f59e0b; }
+      .cc-toggle-wrap input:checked + .cc-toggle-track { background: #f2e840; }
       .cc-toggle-thumb {
         position: absolute;
         left: 2px;
@@ -249,7 +242,7 @@
 
       .cc-setting-divider {
         height: 1px;
-        background: #3f3f46;
+        background: #1e2d42;
         margin: 0 11px;
       }
 
@@ -259,10 +252,10 @@
         gap: 6px;
         margin: 7px 11px 9px;
         padding: 6px 9px;
-        background: #27272a;
-        border: 1px solid #3f3f46;
+        background: #111827;
+        border: 1px solid #1e2d42;
         border-radius: 6px;
-        color: #a1a1aa;
+        color: #8b9abf;
         font-size: 11px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         cursor: pointer;
@@ -270,17 +263,17 @@
         width: calc(100% - 22px);
         text-align: left;
       }
-      .cc-reset-btn:hover { background: #3f3f46; color: #f4f4f5; }
+      .cc-reset-btn:hover { background: #1e2d42; color: #e8f0ff; }
 
       .cc-banner-row {
         display: flex;
         align-items: center;
         gap: 6px;
         padding: 7px 11px;
-        border-bottom: 1px solid #3f3f46;
+        border-bottom: 1px solid #1e2d42;
         font-size: 11px;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: #a1a1aa;
+        color: #8b9abf;
       }
       .cc-banner-row.hidden { display: none; }
 
@@ -291,28 +284,59 @@
         flex-shrink: 0;
       }
       .dot-ok   { background: #22c55e; }
-      .dot-warn { background: #f59e0b; }
-      .dot-none { background: #52525b; }
+      .dot-warn { background: #f2e840; }
+      .dot-none { background: #374d6a; }
 
       .cc-tracker-count-row {
         display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 11px 4px;
+      }
+
+      .cc-count-left {
+        display: flex;
         align-items: baseline;
         gap: 4px;
-        padding: 8px 11px 4px;
       }
 
       .cc-count-num {
         font-size: 20px;
         font-weight: 800;
-        color: #f59e0b;
+        color: #f2e840;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         line-height: 1;
       }
 
       .cc-count-label {
         font-size: 11px;
-        color: #71717a;
+        color: #5b7a9e;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .cc-block-all-wrap {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .cc-block-all-wrap input[type="checkbox"] {
+        accent-color: #f2e840;
+        width: 12px;
+        height: 12px;
+        margin: 0;
+        cursor: pointer;
+        flex-shrink: 0;
+        position: static;
+        opacity: 1;
+      }
+      .cc-block-all-label {
+        font-size: 10px;
+        color: #5b7a9e;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        white-space: nowrap;
+        user-select: none;
       }
 
       .cc-list {
@@ -326,7 +350,7 @@
 
       .cc-list::-webkit-scrollbar { width: 4px; }
       .cc-list::-webkit-scrollbar-track { background: transparent; }
-      .cc-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+      .cc-list::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 4px; }
 
       .cc-tracker-item {
         display: flex;
@@ -338,7 +362,7 @@
         border-radius: 0;
         position: relative;
       }
-      .cc-tracker-item:hover { background: #27272a; }
+      .cc-tracker-item:hover { background: #111827; }
 
       .cc-tracker-logo {
         width: 14px;
@@ -347,15 +371,15 @@
         object-fit: contain;
         flex-shrink: 0;
         margin-top: 1px;
-        background: #3f3f46;
+        background: #1e2d42;
       }
 
       .cc-tracker-logo-fb {
         width: 14px;
         height: 14px;
         border-radius: 2px;
-        background: #3f3f46;
-        color: #a1a1aa;
+        background: #1e2d42;
+        color: #8b9abf;
         font-size: 8px;
         font-weight: 700;
         display: flex;
@@ -377,7 +401,7 @@
       .cc-tracker-name {
         font-size: 11px;
         font-weight: 600;
-        color: #f4f4f5;
+        color: #e8f0ff;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -401,13 +425,13 @@
       .cat-marketing   { background:#14532d; color:#86efac; }
       .cat-support     { background:#1c1917; color:#a8a29e; }
       .cat-performance { background:#1c2a1c; color:#a3d9a5; }
-      .cat-other       { background:#27272a; color:#a1a1aa; }
+      .cat-other       { background:#111827; color:#8b9abf; }
 
       .cc-tooltip {
         position: fixed;
         width: 210px;
-        background: #1c1c1f;
-        border: 1px solid #52525b;
+        background: #090e18;
+        border: 1px solid #374d6a;
         border-radius: 10px;
         padding: 9px 12px;
         font-size: 11px;
@@ -431,7 +455,7 @@
         top: 50%;
         transform: translateY(-50%);
         border: 7px solid transparent;
-        border-left-color: #52525b;
+        border-left-color: #374d6a;
       }
       .cc-tooltip::after {
         content: "";
@@ -441,47 +465,175 @@
         transform: translateY(-50%);
         margin-left: -1px;
         border: 6px solid transparent;
-        border-left-color: #1c1c1f;
+        border-left-color: #090e18;
       }
 
       .cc-empty {
         font-size: 11px;
-        color: #52525b;
+        color: #374d6a;
         text-align: center;
         padding: 14px 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
+
+      /* ── Blocklist section inside settings popout ── */
+      .cc-bl-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 11px 5px;
+      }
+      .cc-bl-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #8b9abf;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .cc-bl-count {
+        font-size: 10px;
+        color: #ef4444;
+        font-weight: 700;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .cc-bl-search {
+        display: block;
+        width: calc(100% - 22px);
+        margin: 0 11px 6px;
+        padding: 5px 8px;
+        background: #111827;
+        border: 1px solid #1e2d42;
+        border-radius: 6px;
+        color: #e8f0ff;
+        font-size: 11px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        outline: none;
+      }
+      .cc-bl-search::placeholder { color: #374d6a; }
+      .cc-bl-search:focus { border-color: #5b7a9e; }
+      .cc-bl-list {
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 0 0 6px;
+      }
+      .cc-bl-list::-webkit-scrollbar { width: 4px; }
+      .cc-bl-list::-webkit-scrollbar-track { background: transparent; }
+      .cc-bl-list::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 4px; }
+      .cc-bl-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 11px;
+        gap: 8px;
+        transition: background 0.1s;
+      }
+      .cc-bl-row:hover { background: #111827; }
+      .cc-bl-row-left {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-width: 0;
+        flex: 1;
+      }
+      .cc-bl-name {
+        font-size: 11px;
+        color: #d4d4d8;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .cc-bl-only-wrap {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0 11px 5px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .cc-bl-only-label {
+        font-size: 10px;
+        color: #5b7a9e;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .cc-bl-only-wrap input[type="checkbox"] {
+        accent-color: #f2e840;
+        width: 11px;
+        height: 11px;
+        margin: 0;
+        cursor: pointer;
+        flex-shrink: 0;
+        position: static;
+        opacity: 1;
+      }
+
+      .cc-bl-empty, .cc-bl-loading {
+        font-size: 11px;
+        color: #374d6a;
+        text-align: center;
+        padding: 12px 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      /* ── Block button ── */
+      .cc-block-btn {
+        background: none;
+        border: none;
+        color: #374d6a;
+        cursor: pointer;
+        font-size: 15px;
+        line-height: 1;
+        padding: 0 2px;
+        flex-shrink: 0;
+        opacity: 0;
+        transition: opacity 0.1s, color 0.1s;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .cc-tracker-item:hover .cc-block-btn { opacity: 1; }
+      .cc-block-btn:hover { color: #ef4444; }
+      .cc-block-btn.cc-blocked-on { opacity: 1; color: #ef4444; }
+
+      .cc-tracker-item.cc-is-blocked .cc-tracker-name { opacity: 0.4; text-decoration: line-through; }
+      .cc-tracker-item.cc-is-blocked .cc-cat          { opacity: 0.4; }
+      .cc-tracker-item.cc-is-blocked .cc-tracker-logo,
+      .cc-tracker-item.cc-is-blocked .cc-tracker-logo-fb { opacity: 0.4; }
 
       /* ── Light mode overrides ─────────────────────────────────────────── */
       :host(.cc-light) .cc-pill {
         background: #ffffff; border-color: #d4d4d8;
         box-shadow: 0 2px 12px rgba(0,0,0,0.1);
       }
-      :host(.cc-light) .cc-pill:hover { background: #f4f4f5; border-color: #a1a1aa; }
-      :host(.cc-light) .cc-badge.zero { background: #e4e4e7; color: #52525b; }
+      :host(.cc-light) .cc-pill:hover { background: #e8f0ff; border-color: #8b9abf; }
+      :host(.cc-light) .cc-badge      { color: #111827; }
+      :host(.cc-light) .cc-badge.zero { color: #8b9abf; }
 
       :host(.cc-light) .cc-panel {
         background: #ffffff; border-color: #d4d4d8;
         box-shadow: 0 4px 24px rgba(0,0,0,0.12);
       }
       :host(.cc-light) .cc-panel-header { border-bottom-color: #d4d4d8; }
-      :host(.cc-light) .cc-panel-title  { color: #18181b; }
+      :host(.cc-light) .cc-panel-title  { color: #0d1117; }
       :host(.cc-light) .cc-close,
-      :host(.cc-light) .cc-settings-btn { color: #71717a; }
+      :host(.cc-light) .cc-settings-btn { color: #5b7a9e; }
       :host(.cc-light) .cc-close:hover,
-      :host(.cc-light) .cc-settings-btn:hover { color: #18181b; background: #e4e4e7; }
-      :host(.cc-light) .cc-settings-btn.active { color: #d97706; background: #e4e4e7; }
+      :host(.cc-light) .cc-settings-btn:hover { color: #0d1117; background: #e4e4e7; }
+      :host(.cc-light) .cc-settings-btn.active { color: #c8ba00; background: #e4e4e7; }
 
-      :host(.cc-light) .cc-banner-row   { border-bottom-color: #d4d4d8; color: #52525b; }
-      :host(.cc-light) .cc-count-num    { color: #d97706; }
-      :host(.cc-light) .cc-count-label  { color: #71717a; }
+      :host(.cc-light) .cc-banner-row   { border-bottom-color: #d4d4d8; color: #374d6a; }
+      :host(.cc-light) .cc-count-num    { color: #c8ba00; }
+      :host(.cc-light) .cc-count-label  { color: #5b7a9e; }
+      :host(.cc-light) .cc-block-all-label { color: #5b7a9e; }
 
       :host(.cc-light) .cc-list::-webkit-scrollbar-thumb { background: #d4d4d8; }
-      :host(.cc-light) .cc-tracker-item:hover { background: #f4f4f5; }
-      :host(.cc-light) .cc-tracker-name { color: #18181b; }
+      :host(.cc-light) .cc-tracker-item:hover { background: #e8f0ff; }
+      :host(.cc-light) .cc-tracker-name { color: #0d1117; }
       :host(.cc-light) .cc-tracker-logo { background: #e4e4e7; }
-      :host(.cc-light) .cc-tracker-logo-fb { background: #e4e4e7; color: #52525b; }
-      :host(.cc-light) .cc-empty        { color: #a1a1aa; }
+      :host(.cc-light) .cc-tracker-logo-fb { background: #e4e4e7; color: #374d6a; }
+      :host(.cc-light) .cc-empty        { color: #8b9abf; }
 
       :host(.cc-light) .cat-advertising { background:#fee2e2; color:#991b1b; }
       :host(.cc-light) .cat-analytics   { background:#dbeafe; color:#1d4ed8; }
@@ -489,10 +641,10 @@
       :host(.cc-light) .cat-marketing   { background:#dcfce7; color:#166534; }
       :host(.cc-light) .cat-support     { background:#f5f5f4; color:#44403c; }
       :host(.cc-light) .cat-performance { background:#f0fdf4; color:#166534; }
-      :host(.cc-light) .cat-other       { background:#f4f4f5; color:#52525b; }
+      :host(.cc-light) .cat-other       { background:#e8f0ff; color:#374d6a; }
 
       :host(.cc-light) .cc-tooltip {
-        background: #ffffff; border-color: #d4d4d8; color: #18181b;
+        background: #ffffff; border-color: #d4d4d8; color: #0d1117;
         box-shadow: 0 6px 20px rgba(0,0,0,0.12);
       }
       :host(.cc-light) .cc-tooltip::before { border-left-color: #d4d4d8; }
@@ -504,29 +656,40 @@
       }
       :host(.cc-light) .cc-settings-popout::before { border-left-color: #d4d4d8; }
       :host(.cc-light) .cc-settings-popout::after  { border-left-color: #ffffff; }
-      :host(.cc-light) .cc-sp-header     { border-bottom-color: #e4e4e7; color: #71717a; }
-      :host(.cc-light) .cc-setting-label { color: #18181b; }
-      :host(.cc-light) .cc-setting-sub   { color: #71717a; }
+      :host(.cc-light) .cc-sp-header     { border-bottom-color: #e4e4e7; color: #5b7a9e; }
+      :host(.cc-light) .cc-setting-label { color: #0d1117; }
+      :host(.cc-light) .cc-setting-sub   { color: #5b7a9e; }
       :host(.cc-light) .cc-toggle-track  { background: #d4d4d8; }
-      :host(.cc-light) .cc-toggle-wrap input:checked + .cc-toggle-track { background: #d97706; }
+      :host(.cc-light) .cc-toggle-wrap input:checked + .cc-toggle-track { background: #c8ba00; }
       :host(.cc-light) .cc-setting-divider { background: #e4e4e7; }
-      :host(.cc-light) .cc-reset-btn     { background: #f4f4f5; border-color: #d4d4d8; color: #52525b; }
-      :host(.cc-light) .cc-reset-btn:hover { background: #e4e4e7; color: #18181b; }
+      :host(.cc-light) .cc-reset-btn     { background: #e8f0ff; border-color: #d4d4d8; color: #374d6a; }
+      :host(.cc-light) .cc-reset-btn:hover { background: #e4e4e7; color: #0d1117; }
+
+      :host(.cc-light) .cc-block-btn { color: #8b9abf; }
+      :host(.cc-light) .cc-block-btn:hover { color: #ef4444; }
+      :host(.cc-light) .cc-block-btn.cc-blocked-on { color: #ef4444; }
+
+      :host(.cc-light) .cc-bl-title  { color: #5b7a9e; }
+      :host(.cc-light) .cc-bl-search { background: #e8f0ff; border-color: #d4d4d8; color: #0d1117; }
+      :host(.cc-light) .cc-bl-search::placeholder { color: #8b9abf; }
+      :host(.cc-light) .cc-bl-search:focus { border-color: #8b9abf; }
+      :host(.cc-light) .cc-bl-row:hover { background: #e8f0ff; }
+      :host(.cc-light) .cc-bl-name   { color: #111827; }
+      :host(.cc-light) .cc-bl-list::-webkit-scrollbar-thumb { background: #d4d4d8; }
+      :host(.cc-light) .cc-bl-only-label { color: #5b7a9e; }
+      :host(.cc-light) .cc-bl-empty,
+      :host(.cc-light) .cc-bl-loading { color: #8b9abf; }
 
     </style>
 
     <!-- Pill button -->
-    <div class="cc-pill" id="cc-pill" title="Cookiecutter — click to see trackers">
+    <div class="cc-pill" id="cc-pill" title="TrackerTracker — click to see trackers">
       <svg class="cc-icon" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="128" height="128" rx="24" fill="#f59e0b"/>
-        <circle cx="64" cy="64" r="44" fill="#92400e"/>
-        <circle cx="64" cy="64" r="38" fill="#b45309"/>
-        <ellipse cx="50" cy="52" rx="7" ry="6" fill="#1c0a00" transform="rotate(-15 50 52)"/>
-        <ellipse cx="76" cy="48" rx="6" ry="5" fill="#1c0a00" transform="rotate(10 76 48)"/>
-        <ellipse cx="58" cy="74" rx="6" ry="5" fill="#1c0a00" transform="rotate(-8 58 74)"/>
-        <ellipse cx="80" cy="70" rx="7" ry="6" fill="#1c0a00" transform="rotate(12 80 70)"/>
-        <ellipse cx="46" cy="72" rx="5" ry="4" fill="#1c0a00" transform="rotate(-5 46 72)"/>
-        <line x1="30" y1="34" x2="98" y2="102" stroke="#fef3c7" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <rect width="128" height="128" rx="26" fill="#5e8c6a"/>
+        <path d="M 16 54 C 14 34,34 24,50 40 C 55 45,60 49,64 49 C 68 49,73 45,78 40 C 94 24,114 34,112 54 C 110 50,96 36,80 48 C 75 52,70 55,64 55 C 58 55,53 52,48 48 C 32 36,18 50,16 54 Z" fill="#1c1c1c"/>
+        <ellipse cx="64" cy="88" rx="29" ry="33" fill="#f2e840"/>
+        <ellipse cx="64" cy="78" rx="11" ry="13" fill="#cc2020"/>
+        <circle cx="69" cy="72" r="4" fill="white" opacity="0.88"/>
       </svg>
       <div class="cc-badge zero" id="cc-badge">0</div>
     </div>
@@ -536,7 +699,7 @@
       <div class="cc-panel-header">
         <div class="cc-panel-title-row">
           <svg class="cc-panel-icon" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="128" height="128" rx="24" fill="#f59e0b"/>
+            <rect width="128" height="128" rx="24" fill="#f2e840"/>
             <circle cx="64" cy="64" r="44" fill="#92400e"/>
             <circle cx="64" cy="64" r="38" fill="#b45309"/>
             <ellipse cx="50" cy="52" rx="7" ry="6" fill="#1c0a00" transform="rotate(-15 50 52)"/>
@@ -546,7 +709,7 @@
             <ellipse cx="46" cy="72" rx="5" ry="4" fill="#1c0a00" transform="rotate(-5 46 72)"/>
             <line x1="30" y1="34" x2="98" y2="102" stroke="#fef3c7" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
           </svg>
-          <span class="cc-panel-title">Cookiecutter</span>
+          <span class="cc-panel-title">TrackerTracker</span>
         </div>
         <div class="cc-header-actions">
           <button class="cc-settings-btn" id="cc-settings-btn" title="Settings">⚙</button>
@@ -560,8 +723,14 @@
       </div>
 
       <div class="cc-tracker-count-row">
-        <span class="cc-count-num" id="cc-count-num">0</span>
-        <span class="cc-count-label">trackers on this page</span>
+        <div class="cc-count-left">
+          <span class="cc-count-num" id="cc-count-num">0</span>
+          <span class="cc-count-label">trackers on this page</span>
+        </div>
+        <label class="cc-block-all-wrap" id="cc-block-all-wrap" title="Block all detected trackers">
+          <span class="cc-block-all-label">Block all</span>
+          <input type="checkbox" id="cc-block-all" />
+        </label>
       </div>
 
       <div class="cc-list" id="cc-list">
@@ -582,8 +751,10 @@
   const bannerRow = shadow.getElementById("cc-banner-row");
   const bannerText = shadow.getElementById("cc-banner-text");
   const statusDot = shadow.getElementById("cc-status-dot");
-  const countNum  = shadow.getElementById("cc-count-num");
-  const list        = shadow.getElementById("cc-list");
+  const countNum     = shadow.getElementById("cc-count-num");
+  const blockAllWrap = shadow.getElementById("cc-block-all-wrap");
+  const blockAllChk  = shadow.getElementById("cc-block-all");
+  const list         = shadow.getElementById("cc-list");
   const settingsBtn = shadow.getElementById("cc-settings-btn");
 
   // ── Build the floating settings popout at shadow-root level ──────────────
@@ -613,6 +784,19 @@
     </div>
     <div class="cc-setting-divider"></div>
     <button class="cc-reset-btn" id="cc-reset-pos">↖ Reset position to default</button>
+    <div class="cc-setting-divider"></div>
+    <div class="cc-bl-header">
+      <span class="cc-bl-title">Tracker blocklist</span>
+      <span class="cc-bl-count" id="cc-bl-count"></span>
+    </div>
+    <label class="cc-bl-only-wrap">
+      <input type="checkbox" id="cc-bl-blocked-only" checked />
+      <span class="cc-bl-only-label">Blocked only</span>
+    </label>
+    <input type="text" class="cc-bl-search" id="cc-bl-search" placeholder="Filter trackers…" />
+    <div class="cc-bl-list" id="cc-bl-list">
+      <div class="cc-bl-loading">Loading…</div>
+    </div>
   `;
   shadow.appendChild(settingsPopout);
 
@@ -620,6 +804,20 @@
   const siteHostname = settingsPopout.querySelector("#cc-site-hostname");
   const themeToggle  = settingsPopout.querySelector("#cc-theme-toggle");
   const resetPosBtn  = settingsPopout.querySelector("#cc-reset-pos");
+  const blSearch      = settingsPopout.querySelector("#cc-bl-search");
+  const blBlockedOnly = settingsPopout.querySelector("#cc-bl-blocked-only");
+
+  let allTrackers = null; // cached full tracker list for blocklist
+
+  blSearch.addEventListener("input", () => {
+    if (!allTrackers) return;
+    renderBlocklist(allTrackers, blSearch.value, blBlockedOnly.checked);
+  });
+
+  blBlockedOnly.addEventListener("change", () => {
+    if (!allTrackers) return;
+    renderBlocklist(allTrackers, blSearch.value, blBlockedOnly.checked);
+  });
 
   // ── Theme ─────────────────────────────────────────────────────────────────
 
@@ -635,7 +833,31 @@
     chrome.storage.local.set({ overlayTheme: light ? "light" : "dark" });
   });
 
-  // Load saved theme on init (dark is default so only act on "light")
+  // Block-all toggle — blocks/unblocks every tracker currently on the page
+  blockAllChk.addEventListener("change", () => {
+    const blockAll = blockAllChk.checked;
+    const targets = blockAll
+      ? trackers.filter(t => !blockedSet.has(t.name))
+      : trackers.filter(t =>  blockedSet.has(t.name));
+
+    let pending = targets.length;
+    if (pending === 0) return;
+
+    for (const t of targets) {
+      chrome.runtime.sendMessage(
+        { type: blockAll ? "BLOCK_TRACKER" : "UNBLOCK_TRACKER", name: t.name },
+        () => {
+          if (chrome.runtime.lastError) return;
+          if (blockAll) blockedSet.add(t.name);
+          else          blockedSet.delete(t.name);
+          pending--;
+          if (pending === 0) renderTrackers();
+        }
+      );
+    }
+  });
+
+  // Load saved theme on init — dark is the default; only switch if user explicitly saved "light"
   chrome.storage.local.get("overlayTheme", (data) => {
     applyTheme(data.overlayTheme === "light");
   });
@@ -699,6 +921,14 @@
     badge.textContent = trackers.length;
     badge.className = "cc-badge" + (trackers.length === 0 ? " zero" : "");
 
+    // Sync block-all toggle: visible only when there are trackers; checked when all are blocked
+    if (trackers.length === 0) {
+      blockAllWrap.style.visibility = "hidden";
+    } else {
+      blockAllWrap.style.visibility = "";
+      blockAllChk.checked = trackers.every(t => blockedSet.has(t.name));
+    }
+
     while (list.firstChild) list.removeChild(list.firstChild);
 
     if (trackers.length === 0) {
@@ -716,8 +946,9 @@
     });
 
     for (const t of sorted) {
+      const isBlocked = blockedSet.has(t.name);
       const item = document.createElement("div");
-      item.className = "cc-tracker-item";
+      item.className = "cc-tracker-item" + (isBlocked ? " cc-is-blocked" : "");
 
       const logo = makeLogo(t);
 
@@ -755,8 +986,31 @@
         });
       }
 
+      // Block button
+      const blockBtn = document.createElement("button");
+      blockBtn.className = "cc-block-btn" + (isBlocked ? " cc-blocked-on" : "");
+      blockBtn.textContent = "⊘";
+      blockBtn.title = isBlocked ? "Unblock this tracker" : "Block this tracker";
+      blockBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        sharedTooltip.classList.remove("visible");
+        const nowBlocked = blockedSet.has(t.name);
+        chrome.runtime.sendMessage(
+          { type: nowBlocked ? "UNBLOCK_TRACKER" : "BLOCK_TRACKER", name: t.name },
+          () => {
+            if (chrome.runtime.lastError) return;
+            if (nowBlocked) blockedSet.delete(t.name);
+            else            blockedSet.add(t.name);
+            item.classList.toggle("cc-is-blocked", blockedSet.has(t.name));
+            blockBtn.classList.toggle("cc-blocked-on", blockedSet.has(t.name));
+            blockBtn.title = blockedSet.has(t.name) ? "Unblock this tracker" : "Block this tracker";
+          }
+        );
+      });
+
       item.appendChild(logo);
       item.appendChild(text);
+      item.appendChild(blockBtn);
       list.appendChild(item);
     }
   }
@@ -878,6 +1132,99 @@
 
   let settingsOpen = false;
 
+  function renderBlocklist(list, filter, blockedOnly) {
+    const blList  = settingsPopout.querySelector("#cc-bl-list");
+    const blCount = settingsPopout.querySelector("#cc-bl-count");
+
+    const q = filter.trim().toLowerCase();
+    let filtered = blockedOnly ? list.filter(t => blockedSet.has(t.name)) : list;
+    if (q) filtered = filtered.filter(t =>
+      t.name.toLowerCase().includes(q) || (t.category || "").toLowerCase().includes(q)
+    );
+
+    const totalBlocked = list.filter(t => blockedSet.has(t.name)).length;
+    blCount.textContent = totalBlocked > 0 ? `${totalBlocked} blocked` : "";
+
+    while (blList.firstChild) blList.removeChild(blList.firstChild);
+
+    if (filtered.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "cc-bl-empty";
+      empty.textContent = "No trackers match.";
+      blList.appendChild(empty);
+      return;
+    }
+
+    for (const t of filtered) {
+      const row = document.createElement("div");
+      row.className = "cc-bl-row";
+
+      const left = document.createElement("div");
+      left.className = "cc-bl-row-left";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "cc-bl-name";
+      nameEl.textContent = t.name;
+
+      const catKey = (t.category || "other").toLowerCase();
+      const catEl = document.createElement("span");
+      catEl.className = `cc-cat cat-${catKey}`;
+      catEl.textContent = CAT_LABELS[catKey] || t.category;
+      catEl.style.flexShrink = "0";
+
+      left.appendChild(nameEl);
+      left.appendChild(catEl);
+
+      const label = document.createElement("label");
+      label.className = "cc-toggle-wrap";
+      label.style.flexShrink = "0";
+
+      const chk = document.createElement("input");
+      chk.type = "checkbox";
+      chk.checked = blockedSet.has(t.name);
+
+      const track = document.createElement("span");
+      track.className = "cc-toggle-track";
+      track.innerHTML = '<span class="cc-toggle-thumb"></span>';
+
+      label.appendChild(chk);
+      label.appendChild(track);
+
+      chk.addEventListener("change", () => {
+        const block = chk.checked;
+        chrome.runtime.sendMessage(
+          { type: block ? "BLOCK_TRACKER" : "UNBLOCK_TRACKER", name: t.name },
+          () => {
+            if (chrome.runtime.lastError) return;
+            if (block) blockedSet.add(t.name);
+            else       blockedSet.delete(t.name);
+            if (expanded) renderTrackers();
+            renderBlocklist(list, blSearch.value, blBlockedOnly.checked);
+          }
+        );
+      });
+
+      row.appendChild(left);
+      row.appendChild(label);
+      blList.appendChild(row);
+    }
+  }
+
+  function loadBlocklist() {
+    if (allTrackers) {
+      renderBlocklist(allTrackers, blSearch.value, blBlockedOnly.checked);
+      return;
+    }
+    const blList = settingsPopout.querySelector("#cc-bl-list");
+    blList.innerHTML = '<div class="cc-bl-loading">Loading…</div>';
+    chrome.runtime.sendMessage({ type: "GET_ALL_TRACKERS" }, (resp) => {
+      if (chrome.runtime.lastError || !resp) return;
+      allTrackers = resp.trackers.slice().sort((a, b) => a.name.localeCompare(b.name));
+      blSearch.placeholder = `Filter ${allTrackers.length} trackers…`;
+      renderBlocklist(allTrackers, "", true); // default: blocked only
+    });
+  }
+
   function openSettings() {
     settingsOpen = true;
     settingsBtn.classList.add("active");
@@ -893,6 +1240,7 @@
       (resp) => { siteToggle.checked = !(resp && resp.disabled); }
     );
     settingsPopout.classList.add("visible");
+    loadBlocklist();
   }
 
   function closeSettings() {
@@ -929,14 +1277,26 @@
     chrome.storage.local.remove("overlayPos");
   });
 
-  // Close on outside click (only if not dragging)
+  // Close on outside click
+  // Closed shadow DOM prunes composedPath() and retargets e.target to `host` for all
+  // inner clicks, so we can't distinguish inside-shadow clicks from the document.
+  // Solution: use the document listener only to detect clicks fully OUTSIDE the shadow
+  // (e.target !== host), and use a shadow-root listener for inside-shadow logic where
+  // composedPath() is unpruned.
   document.addEventListener("click", (e) => {
     if (didDrag) return;
-    if (settingsOpen && !settingsPopout.contains(e.target) && e.target !== settingsBtn) {
-      closeSettings();
+    if (e.target !== host) {
+      if (settingsOpen) closeSettings();
+      if (expanded) closePanel();
     }
-    if (!host.contains(e.target) && expanded) {
-      closePanel();
+  });
+
+  // Inside the shadow, close settings when clicking anywhere outside the popout itself
+  shadow.addEventListener("click", (e) => {
+    if (!settingsOpen) return;
+    const path = e.composedPath();
+    if (!path.includes(settingsPopout) && !path.includes(settingsBtn)) {
+      closeSettings();
     }
   });
 
@@ -985,6 +1345,12 @@
   chrome.runtime.sendMessage({ type: "GET_MY_TAB_DATA" }, (resp) => {
     if (chrome.runtime.lastError) return;
     applyUpdate(resp);
+  });
+
+  // Fetch blocked trackers so the UI can reflect them on first render
+  chrome.runtime.sendMessage({ type: "GET_BLOCKED_TRACKERS" }, (resp) => {
+    if (chrome.runtime.lastError) return;
+    if (resp && resp.blocked) blockedSet = new Set(resp.blocked);
   });
 
   // Check if disabled for this site

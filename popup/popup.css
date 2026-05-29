@@ -1,4 +1,4 @@
-/* Cookiecutter Popup Styles */
+/* TrackerTracker Popup Styles */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -7,16 +7,16 @@
 }
 
 :root {
-  --bg: #18181b;
-  --bg-surface: #27272a;
-  --bg-hover: #3f3f46;
-  --border: #3f3f46;
-  --text: #f4f4f5;
-  --text-muted: #a1a1aa;
-  --accent: #f59e0b;
-  --accent-dim: #78350f;
+  --bg: #0d1117;
+  --bg-surface: #111827;
+  --bg-hover: #1e2d42;
+  --border: #1e2d42;
+  --text: #e8f0ff;
+  --text-muted: #8b9abf;
+  --accent: #f2e840;
+  --accent-dim: #8a7e00;
   --ok: #22c55e;
-  --warn: #f59e0b;
+  --warn: #f2e840;
   --danger: #ef4444;
   --radius: 8px;
   --radius-sm: 4px;
