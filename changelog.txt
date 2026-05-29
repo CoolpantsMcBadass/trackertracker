@@ -1,6 +1,20 @@
 Cookiecutter Changelog
 ======================
 
+[0.4.0] 2026-05-29
+- data/trackers.json: expanded from 154 to 241 trackers (+87) — added full coverage of:
+  Ad exchanges: Adform, BidSwitch, Amobee, DataXu/Roku OneView, Undertone/Perion, EMX Digital, RhythmOne, Zedo, LoopMe, AppLovin, InMobi, Digital Turbine, Unity Ads/IronSource, Kargo, Bombora, Carbon Ads, BuySellAds, Ezoic, Mediavine, Raptive/AdThrive
+  Affiliate: Skimlinks, VigLink/Sovrn Commerce, Impact, CJ Affiliate, Rakuten Advertising, Awin, ShareASale, PartnerStack, TUNE/HasOffers
+  Attribution: Singular, Rockerbox, Northbeam, Triple Whale
+  Session recording: Smartlook, Glassbox, Quantum Metric, Decibel Insight, SessionCam, SessionStack
+  Product analytics: Sprig, Appcues, WalkMe, Chameleon, UserGuiding, Oribi
+  Marketing: Constant Contact, Campaign Monitor, Brevo/Sendinblue, Omnisend, Attentive, Postscript, Yotpo, Bazaarvoice, Trustpilot Widget, Klarna, Affirm, Afterpay, Nosto, Barilliance
+  Support: LivePerson, Gorgias, Kustomer
+  Social: SoundCloud, Twitch, Tumblr, Substack
+  Surveys: Qualtrics, SurveyMonkey, Medallia, Typeform, Delighted, UserVoice
+  Error monitoring: AppDynamics, Raygun, TrackJS, Airbrake
+  B2B/other: ZoomInfo, iSpot.tv, Algolia Insights, Google Maps API, Mapbox, Stripe Radar, PayPal
+
 [0.3.3] 2026-05-29
 - overlay.js: tooltip restyled as speech bubble — ::before draws border-colored tail, ::after draws fill-colored tail on top, creating a right-pointing arrow that points back at the hovered tracker row; slightly larger padding, rounder corners, lighter text
 

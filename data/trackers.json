@@ -1230,5 +1230,702 @@
     "category": "analytics",
     "description": "Lightweight, privacy-respecting analytics — no cookies, no personal data, just aggregated page view counts.",
     "logo": "https://plausible.io/favicon.ico"
+  },
+
+  {
+    "name": "Adform",
+    "company": "Adform",
+    "domains": ["adform.net", "track.adform.net", "cm.adform.net"],
+    "category": "advertising",
+    "description": "European ad server and exchange that sets cross-site cookies to track you across publisher sites for audience targeting.",
+    "logo": "https://adform.com/favicon.ico"
+  },
+  {
+    "name": "BidSwitch",
+    "company": "IPONWEB / StackAdapt",
+    "domains": ["bidswitch.net"],
+    "category": "advertising",
+    "description": "Programmatic plumbing layer connecting ad buyers and sellers — syncs your identity across dozens of ad platforms simultaneously.",
+    "logo": "https://www.bidswitch.com/favicon.ico"
+  },
+  {
+    "name": "Amobee",
+    "company": "Amobee",
+    "domains": ["amgdgt.com", "amobee.com"],
+    "category": "advertising",
+    "description": "Demand-side platform that tracks your conversions and browsing to run retargeting campaigns across digital and TV.",
+    "logo": "https://www.amobee.com/favicon.ico"
+  },
+  {
+    "name": "DataXu / Roku OneView",
+    "company": "Roku",
+    "domains": ["ravm.tv", "dataxu.com"],
+    "category": "advertising",
+    "description": "Programmatic ad platform that connects your web browsing data to your Roku TV viewing for cross-screen ad targeting.",
+    "logo": "https://www.roku.com/favicon.ico"
+  },
+  {
+    "name": "Undertone / Perion",
+    "company": "Perion",
+    "domains": ["udmserve.net", "undertone.com"],
+    "category": "advertising",
+    "description": "High-impact ad network serving large-format display and video units — uses cookies and pixels to track engagement.",
+    "logo": "https://www.perion.com/favicon.ico"
+  },
+  {
+    "name": "EMX Digital",
+    "company": "Big Village",
+    "domains": ["hb.emxdgt.com", "emxdgt.com"],
+    "category": "advertising",
+    "description": "Header bidding exchange that auctions your browser profile to advertisers as pages load.",
+    "logo": "https://bigvillageinc.com/favicon.ico"
+  },
+  {
+    "name": "RhythmOne",
+    "company": "RhythmOne / Tremor",
+    "domains": ["1rx.io", "rhythmone.com"],
+    "category": "advertising",
+    "description": "Programmatic video and display ad marketplace that collects behavioral data to power audience-targeted campaigns.",
+    "logo": "https://www.rhythmone.com/favicon.ico"
+  },
+  {
+    "name": "Zedo",
+    "company": "Zedo",
+    "domains": ["zedo.com", "g6.zedo.com"],
+    "category": "advertising",
+    "description": "Ad serving and management platform that sets persistent cookies to track your browsing across publisher sites.",
+    "logo": "https://www.zedo.com/favicon.ico"
+  },
+  {
+    "name": "LoopMe",
+    "company": "LoopMe",
+    "domains": ["loopme.com", "i.loopme.com"],
+    "category": "advertising",
+    "description": "AI-driven brand advertising platform that uses your mobile data and location signals to target and measure video ads.",
+    "logo": "https://loopme.com/favicon.ico"
+  },
+  {
+    "name": "AppLovin",
+    "company": "AppLovin",
+    "domains": ["applovin.com", "a.applovin.com", "adjust.com"],
+    "category": "advertising",
+    "description": "Mobile advertising giant that tracks your app installs and in-app behavior across thousands of apps to power targeted ads.",
+    "logo": "https://www.applovin.com/favicon.ico"
+  },
+  {
+    "name": "InMobi",
+    "company": "InMobi",
+    "domains": ["inmobi.com", "cf.innity.com"],
+    "category": "advertising",
+    "description": "Mobile ad network using device fingerprinting and first-party signals to measure and target ads across apps and mobile web.",
+    "logo": "https://www.inmobi.com/favicon.ico"
+  },
+  {
+    "name": "Digital Turbine",
+    "company": "Digital Turbine",
+    "domains": ["digitalturbine.com", "adk2.com"],
+    "category": "advertising",
+    "description": "App delivery and mobile advertising platform that tracks which apps you install and use to optimize ad delivery.",
+    "logo": "https://www.digitalturbine.com/favicon.ico"
+  },
+  {
+    "name": "Unity Ads / IronSource",
+    "company": "Unity",
+    "domains": ["unityads.unity3d.com", "is.com", "levelplay.com"],
+    "category": "advertising",
+    "description": "Game and app advertising network that tracks your in-app behavior and purchase history to target ads within mobile games.",
+    "logo": "https://unity.com/favicon.ico"
+  },
+  {
+    "name": "Kargo",
+    "company": "Kargo",
+    "domains": ["kargo.com", "storage.googleapis.com"],
+    "category": "advertising",
+    "description": "Premium mobile and CTV ad platform that measures how long you look at ads and tracks attention across sites.",
+    "logo": "https://www.kargo.com/favicon.ico"
+  },
+  {
+    "name": "Bombora",
+    "company": "Bombora",
+    "domains": ["bombora.com", "ml314.com", "data.p-n.io"],
+    "category": "advertising",
+    "description": "B2B intent data cooperative — aggregates your reading behavior across business publishing sites to flag you as an in-market buyer.",
+    "logo": "https://bombora.com/favicon.ico"
+  },
+  {
+    "name": "Carbon Ads",
+    "company": "BuySellAds",
+    "domains": ["srv.carbonads.net", "cdn4.buysellads.net"],
+    "category": "advertising",
+    "description": "Developer and design-focused ad network that tracks your visits to tech sites to serve relevant ads.",
+    "logo": "https://carbonads.net/favicon.ico"
+  },
+  {
+    "name": "BuySellAds",
+    "company": "BuySellAds",
+    "domains": ["buysellads.net", "buysellads.com", "bsacdn.com"],
+    "category": "advertising",
+    "description": "Direct ad marketplace serving display and native ads — tracks impressions and clicks across publisher sites.",
+    "logo": "https://www.buysellads.com/favicon.ico"
+  },
+  {
+    "name": "Ezoic",
+    "company": "Ezoic",
+    "domains": ["ezoic.com", "g.ezoic.net", "pubguru.ezoic.com"],
+    "category": "advertising",
+    "description": "AI-driven ad optimization platform that runs A/B tests on ad placements and tracks detailed user behavior for revenue maximization.",
+    "logo": "https://www.ezoic.com/favicon.ico"
+  },
+  {
+    "name": "Mediavine",
+    "company": "Mediavine",
+    "domains": ["mediavine.com", "scripts.mediavine.com"],
+    "category": "advertising",
+    "description": "Publisher ad management platform that runs programmatic auctions on every page load, sharing your data with dozens of ad partners.",
+    "logo": "https://www.mediavine.com/favicon.ico"
+  },
+  {
+    "name": "Raptive / AdThrive",
+    "company": "Raptive",
+    "domains": ["raptive.com", "ads.adthrive.com"],
+    "category": "advertising",
+    "description": "Premium publisher ad network managing programmatic auctions for lifestyle and food blogs — shares your data with multiple demand partners.",
+    "logo": "https://raptive.com/favicon.ico"
+  },
+  {
+    "name": "Skimlinks",
+    "company": "Skimlinks (Taboola)",
+    "domains": ["skimlinks.com", "skimresources.com", "t.skimresources.com"],
+    "category": "affiliate",
+    "description": "Automatically converts product links on editorial pages into affiliate links — tracks which products you click and buy to earn commissions.",
+    "logo": "https://skimlinks.com/favicon.ico"
+  },
+  {
+    "name": "VigLink / Sovrn Commerce",
+    "company": "Sovrn",
+    "domains": ["viglink.com", "payload.csilb.com"],
+    "category": "affiliate",
+    "description": "Intercepts your clicks on outbound product links to insert affiliate tracking, recording which retailers you visit.",
+    "logo": "https://www.sovrn.com/favicon.ico"
+  },
+  {
+    "name": "Impact",
+    "company": "Impact",
+    "domains": ["impact.com", "d.impactradius.com", "sjv.io", "evyy.net"],
+    "category": "affiliate",
+    "description": "Partnership management platform that tracks your path from a referral link to a purchase across devices.",
+    "logo": "https://impact.com/favicon.ico"
+  },
+  {
+    "name": "CJ Affiliate",
+    "company": "Conversant / CJ",
+    "domains": ["emjcd.com", "anrdoezrs.net", "dpbolvw.net", "jdoqocy.com"],
+    "category": "affiliate",
+    "description": "One of the world's largest affiliate networks — tracks your clicks and purchases to attribute commissions to referring publishers.",
+    "logo": "https://www.cj.com/favicon.ico"
+  },
+  {
+    "name": "Rakuten Advertising",
+    "company": "Rakuten",
+    "domains": ["linksynergy.com", "ad.linksynergy.com", "click.linksynergy.com"],
+    "category": "affiliate",
+    "description": "Affiliate network that routes your clicks through Rakuten's tracking domain to log conversions and pay publishers.",
+    "logo": "https://www.rakuten.com/favicon.ico"
+  },
+  {
+    "name": "Awin",
+    "company": "Awin",
+    "domains": ["awin1.com", "www.awin1.com"],
+    "category": "affiliate",
+    "description": "Global affiliate network that drops a MasterTag on advertiser sites to track every click and purchase from referring publishers.",
+    "logo": "https://www.awin.com/favicon.ico"
+  },
+  {
+    "name": "ShareASale",
+    "company": "Awin",
+    "domains": ["shareasale.com", "www.shareasale.com"],
+    "category": "affiliate",
+    "description": "Affiliate marketing network tracking your clicks through publisher links to attribute conversions and calculate commissions.",
+    "logo": "https://www.shareasale.com/favicon.ico"
+  },
+  {
+    "name": "PartnerStack",
+    "company": "PartnerStack",
+    "domains": ["growsumo.com", "partnerstack.com", "cdn.growsumo.com"],
+    "category": "affiliate",
+    "description": "B2B partner program platform that tracks your referral source and purchase journey to credit the right partner.",
+    "logo": "https://partnerstack.com/favicon.ico"
+  },
+  {
+    "name": "TUNE / HasOffers",
+    "company": "TUNE",
+    "domains": ["hasoffers.com", "tlnk.io", "tune.com"],
+    "category": "affiliate",
+    "description": "Mobile marketing measurement platform that tracks app install campaigns by logging clicks and attributing installs to ad sources.",
+    "logo": "https://www.tune.com/favicon.ico"
+  },
+  {
+    "name": "Singular",
+    "company": "Singular",
+    "domains": ["sng.link", "singular.net"],
+    "category": "attribution",
+    "description": "Mobile attribution platform that uses SKAdNetwork and probabilistic matching to link your ad clicks to app installs.",
+    "logo": "https://www.singular.net/favicon.ico"
+  },
+  {
+    "name": "Rockerbox",
+    "company": "Rockerbox",
+    "domains": ["rockerbox.com", "p.rkbxbkr.com"],
+    "category": "attribution",
+    "description": "Marketing attribution platform that tracks your full customer journey — every touchpoint from first click to purchase.",
+    "logo": "https://www.rockerbox.com/favicon.ico"
+  },
+  {
+    "name": "Northbeam",
+    "company": "Northbeam",
+    "domains": ["js.northbeam.io", "northbeam.io"],
+    "category": "attribution",
+    "description": "Multi-touch attribution tool that tracks every ad interaction you had before buying to help advertisers understand what influenced you.",
+    "logo": "https://www.northbeam.io/favicon.ico"
+  },
+  {
+    "name": "Triple Whale",
+    "company": "Triple Whale",
+    "domains": ["triplewhale.com", "cdn.triplewhale.com"],
+    "category": "attribution",
+    "description": "E-commerce attribution platform that tracks your path from ad click to purchase and assigns credit across channels.",
+    "logo": "https://www.triplewhale.com/favicon.ico"
+  },
+  {
+    "name": "Smartlook",
+    "company": "Smartlook",
+    "domains": ["smartlook.com", "rec.smartlook.com"],
+    "category": "analytics",
+    "description": "Session recording and product analytics tool that captures every click, scroll, and rage-click on your session.",
+    "logo": "https://www.smartlook.com/favicon.ico"
+  },
+  {
+    "name": "Glassbox",
+    "company": "Glassbox",
+    "domains": ["glassbox.com", "rum.glassboxdigital.io"],
+    "category": "analytics",
+    "description": "Enterprise session replay platform used by banks and insurers — records your complete digital journey including form interactions.",
+    "logo": "https://www.glassbox.com/favicon.ico"
+  },
+  {
+    "name": "Quantum Metric",
+    "company": "Quantum Metric",
+    "domains": ["quantummetric.com", "cdn.quantummetric.com"],
+    "category": "analytics",
+    "description": "Real-user monitoring and session replay platform that captures your clicks and form inputs to diagnose conversion problems.",
+    "logo": "https://www.quantummetric.com/favicon.ico"
+  },
+  {
+    "name": "Decibel Insight",
+    "company": "Medallia",
+    "domains": ["decibelinsight.net", "dns.decibelinsight.net"],
+    "category": "analytics",
+    "description": "Digital experience analytics recording your mouse movements, scrolling, and frustration signals like rage clicks.",
+    "logo": "https://www.medallia.com/favicon.ico"
+  },
+  {
+    "name": "SessionCam",
+    "company": "Contentsquare",
+    "domains": ["sessioncam.com", "cdn.sessioncam.com"],
+    "category": "analytics",
+    "description": "Session recording and replay tool that captures your complete browsing path including what you typed in forms.",
+    "logo": "https://sessioncam.com/favicon.ico"
+  },
+  {
+    "name": "Sprig",
+    "company": "Sprig",
+    "domains": ["cdn.sprig.com", "sprig.com"],
+    "category": "analytics",
+    "description": "In-product survey and session replay tool — triggers micro-surveys based on your in-app behavior and records your responses.",
+    "logo": "https://sprig.com/favicon.ico"
+  },
+  {
+    "name": "Appcues",
+    "company": "Appcues",
+    "domains": ["fast.appcues.com", "appcues.com"],
+    "category": "analytics",
+    "description": "User onboarding platform that tracks which product tours and tooltips you interact with to measure feature adoption.",
+    "logo": "https://www.appcues.com/favicon.ico"
+  },
+  {
+    "name": "WalkMe",
+    "company": "WalkMe",
+    "domains": ["cdn.walkme.com", "walkme.com"],
+    "category": "analytics",
+    "description": "Digital adoption platform that records how you navigate software — every click, step completion, and abandonment.",
+    "logo": "https://www.walkme.com/favicon.ico"
+  },
+  {
+    "name": "Chameleon",
+    "company": "Chameleon",
+    "domains": ["js.chmln.co", "chameleon.io"],
+    "category": "analytics",
+    "description": "Product tour and onboarding tool that tracks which tutorials you start, complete, or skip to optimize the user experience.",
+    "logo": "https://www.chameleon.io/favicon.ico"
+  },
+  {
+    "name": "Constant Contact",
+    "company": "Constant Contact",
+    "domains": ["r20.rs6.net", "constantcontact.com"],
+    "category": "marketing",
+    "description": "Email marketing platform that routes every link in its emails through a tracking domain to log when you click and what you opened.",
+    "logo": "https://www.constantcontact.com/favicon.ico"
+  },
+  {
+    "name": "Campaign Monitor",
+    "company": "Campaign Monitor",
+    "domains": ["createsend.com", "cmail20.com", "list-manage.com"],
+    "category": "marketing",
+    "description": "Email marketing tool that tracks which emails you open and which links you click using tracking pixels and redirect URLs.",
+    "logo": "https://www.campaignmonitor.com/favicon.ico"
+  },
+  {
+    "name": "Brevo / Sendinblue",
+    "company": "Brevo",
+    "domains": ["sibautomation.com", "analytics.brevo.com", "api.brevo.com"],
+    "category": "marketing",
+    "description": "Email and SMS marketing platform with on-site tracker that records your page visits and links them to your email address.",
+    "logo": "https://www.brevo.com/favicon.ico"
+  },
+  {
+    "name": "Omnisend",
+    "company": "Omnisend",
+    "domains": ["o.omnisend.com", "track.omnisend.com"],
+    "category": "marketing",
+    "description": "E-commerce marketing platform that tracks your browsing and purchase behavior to trigger automated email and SMS sequences.",
+    "logo": "https://www.omnisend.com/favicon.ico"
+  },
+  {
+    "name": "Attentive",
+    "company": "Attentive",
+    "domains": ["attn.tv", "cdn.attn.tv"],
+    "category": "marketing",
+    "description": "SMS marketing platform with an on-site pixel that monitors your browsing and purchase behavior to trigger personalized text messages.",
+    "logo": "https://www.attentivemobile.com/favicon.ico"
+  },
+  {
+    "name": "Postscript",
+    "company": "Postscript",
+    "domains": ["postscript.io", "js.postscript.io"],
+    "category": "marketing",
+    "description": "SMS marketing tool for e-commerce that tracks your browsing and cart activity to send automated text message campaigns.",
+    "logo": "https://postscript.io/favicon.ico"
+  },
+  {
+    "name": "Yotpo",
+    "company": "Yotpo",
+    "domains": ["staticw2.yotpo.com", "api.yotpo.com"],
+    "category": "marketing",
+    "description": "Reviews, loyalty, and SMS platform that tracks which reviews you read and links your purchase history to your marketing profile.",
+    "logo": "https://www.yotpo.com/favicon.ico"
+  },
+  {
+    "name": "Bazaarvoice",
+    "company": "Bazaarvoice",
+    "domains": ["bazaarvoice.com", "api.bazaarvoice.com", "display.ugc.bazaarvoice.com"],
+    "category": "marketing",
+    "description": "User-generated content platform that tracks which reviews and Q&As you read, and feeds that data into retail analytics.",
+    "logo": "https://www.bazaarvoice.com/favicon.ico"
+  },
+  {
+    "name": "Trustpilot Widget",
+    "company": "Trustpilot",
+    "domains": ["widget.trustpilot.com", "invitations.trustpilot.com"],
+    "category": "marketing",
+    "description": "Review widget that tracks your engagement with star ratings and reviews, and can trigger post-purchase survey invitations.",
+    "logo": "https://www.trustpilot.com/favicon.ico"
+  },
+  {
+    "name": "LivePerson",
+    "company": "LivePerson",
+    "domains": ["lpsnmedia.net", "liveperson.net", "z1.lpsnmedia.net"],
+    "category": "support",
+    "description": "AI-powered chat platform that uses third-party cookies to recognize you across sessions and personalize conversations.",
+    "logo": "https://www.liveperson.com/favicon.ico"
+  },
+  {
+    "name": "Gorgias",
+    "company": "Gorgias",
+    "domains": ["config.gorgias.chat", "gorgias.io"],
+    "category": "support",
+    "description": "E-commerce customer support tool that tracks your order history and browsing activity to give agents full context before you say a word.",
+    "logo": "https://www.gorgias.com/favicon.ico"
+  },
+  {
+    "name": "Kustomer",
+    "company": "Meta",
+    "domains": ["kustomer.com", "cdn.kustomer.com"],
+    "category": "support",
+    "description": "CRM-based support platform (owned by Meta) that builds a unified profile of your purchases, visits, and support history.",
+    "logo": "https://www.kustomer.com/favicon.ico"
+  },
+  {
+    "name": "SoundCloud Embeds",
+    "company": "SoundCloud",
+    "domains": ["w.soundcloud.com", "api.soundcloud.com"],
+    "category": "social",
+    "description": "Embedded music players let SoundCloud track which tracks you listen to and for how long across every site using their player.",
+    "logo": "https://soundcloud.com/favicon.ico"
+  },
+  {
+    "name": "Twitch Embeds",
+    "company": "Amazon / Twitch",
+    "domains": ["player.twitch.tv", "embed.twitch.tv"],
+    "category": "social",
+    "description": "Embedded Twitch streams and clips let Amazon track your viewing behavior even when you're not on Twitch.",
+    "logo": "https://www.twitch.tv/favicon.ico"
+  },
+  {
+    "name": "Tumblr",
+    "company": "Automattic",
+    "domains": ["assets.tumblr.com", "analytics.tumblr.com"],
+    "category": "social",
+    "description": "Embedded Tumblr content and the reblog button let Tumblr track which posts you interact with across the web.",
+    "logo": "https://www.tumblr.com/favicon.ico"
+  },
+  {
+    "name": "Substack",
+    "company": "Substack",
+    "domains": ["substackcdn.com", "substack.com"],
+    "category": "social",
+    "description": "Newsletter platform that tracks which embedded posts you read and whether you subscribe, across all sites embedding Substack content.",
+    "logo": "https://substack.com/favicon.ico"
+  },
+  {
+    "name": "Klarna",
+    "company": "Klarna",
+    "domains": ["cdn.klarna.com", "eu.klarnaservices.com", "klarnaservices.com"],
+    "category": "marketing",
+    "description": "Buy-now-pay-later service that tracks your browsing behavior across shopping sites to build a financial profile and offer personalized credit.",
+    "logo": "https://www.klarna.com/favicon.ico"
+  },
+  {
+    "name": "Affirm",
+    "company": "Affirm",
+    "domains": ["cdn1.affirm.com", "api.affirm.com"],
+    "category": "marketing",
+    "description": "BNPL lending service that tracks which products you view and consider purchasing to assess creditworthiness and personalize offers.",
+    "logo": "https://www.affirm.com/favicon.ico"
+  },
+  {
+    "name": "Afterpay / Clearpay",
+    "company": "Square / Block",
+    "domains": ["js.afterpay.com", "portal.afterpay.com"],
+    "category": "marketing",
+    "description": "Buy-now-pay-later service that tracks your shopping behavior and purchase history across all sites using the Afterpay checkout button.",
+    "logo": "https://www.afterpay.com/favicon.ico"
+  },
+  {
+    "name": "Nosto",
+    "company": "Nosto",
+    "domains": ["connect.nosto.com", "nosto.com"],
+    "category": "marketing",
+    "description": "E-commerce personalization engine that tracks your browsing and purchase history to power 'Recommended for you' sections.",
+    "logo": "https://www.nosto.com/favicon.ico"
+  },
+  {
+    "name": "Barilliance",
+    "company": "Barilliance",
+    "domains": ["barilliance.net", "b2results.com"],
+    "category": "marketing",
+    "description": "E-commerce personalization and cart abandonment platform that tracks every product you view to trigger targeted emails.",
+    "logo": "https://www.barilliance.com/favicon.ico"
+  },
+  {
+    "name": "Qualtrics",
+    "company": "Qualtrics (SAP)",
+    "domains": ["qualtrics.com", "survey.qualtrics.com", "cdn.qualtrics.com"],
+    "category": "analytics",
+    "description": "Experience management platform that triggers surveys based on your behavior and tracks your responses alongside your visit data.",
+    "logo": "https://www.qualtrics.com/favicon.ico"
+  },
+  {
+    "name": "SurveyMonkey",
+    "company": "Momentive",
+    "domains": ["widget.surveymonkey.com", "surveymonkey.com"],
+    "category": "analytics",
+    "description": "Survey platform embedded in sites to collect feedback — logs your IP, browser, and response data when you participate.",
+    "logo": "https://www.surveymonkey.com/favicon.ico"
+  },
+  {
+    "name": "Medallia",
+    "company": "Medallia",
+    "domains": ["resources.digital.medallia.com", "medallia.com", "kampyle.com"],
+    "category": "analytics",
+    "description": "Customer experience platform that tracks your digital interactions and triggers feedback surveys at key moments in your journey.",
+    "logo": "https://www.medallia.com/favicon.ico"
+  },
+  {
+    "name": "Typeform",
+    "company": "Typeform",
+    "domains": ["embed.typeform.com", "api.typeform.com"],
+    "category": "analytics",
+    "description": "Interactive survey platform that tracks which questions you answer, skip, or abandon to improve form completion rates.",
+    "logo": "https://www.typeform.com/favicon.ico"
+  },
+  {
+    "name": "Delighted",
+    "company": "Qualtrics",
+    "domains": ["d.delighted.com", "delighted.com"],
+    "category": "analytics",
+    "description": "NPS and CSAT survey tool that triggers feedback requests based on your usage and links your score to your customer profile.",
+    "logo": "https://delighted.com/favicon.ico"
+  },
+  {
+    "name": "UserVoice",
+    "company": "UserVoice",
+    "domains": ["widget.uservoice.com", "uservoice.com"],
+    "category": "analytics",
+    "description": "Product feedback widget that tracks which features you request and vote on, linking that to your user account.",
+    "logo": "https://www.uservoice.com/favicon.ico"
+  },
+  {
+    "name": "AppDynamics",
+    "company": "Cisco",
+    "domains": ["pdx1-col.eum-appdynamics.com", "appdynamics.com"],
+    "category": "performance",
+    "description": "Application performance monitoring that captures detailed browser timing and error data from your session.",
+    "logo": "https://www.appdynamics.com/favicon.ico"
+  },
+  {
+    "name": "Raygun",
+    "company": "Raygun",
+    "domains": ["api.raygun.io", "raygun.com"],
+    "category": "performance",
+    "description": "Error and crash reporting tool that logs JavaScript errors in your browser along with a trail of your recent actions.",
+    "logo": "https://raygun.com/favicon.ico"
+  },
+  {
+    "name": "TrackJS",
+    "company": "TrackJS",
+    "domains": ["cdn.trackjs.com", "usage.trackjs.com"],
+    "category": "performance",
+    "description": "JavaScript error monitoring that records the sequence of user actions leading up to a bug to help developers reproduce it.",
+    "logo": "https://trackjs.com/favicon.ico"
+  },
+  {
+    "name": "Airbrake",
+    "company": "Airbrake",
+    "domains": ["api.airbrake.io", "airbrake.io"],
+    "category": "performance",
+    "description": "Error monitoring service that captures browser errors and includes context about your recent actions as debugging breadcrumbs.",
+    "logo": "https://airbrake.io/favicon.ico"
+  },
+  {
+    "name": "ZoomInfo",
+    "company": "ZoomInfo",
+    "domains": ["ws.zoominfo.com", "zi.zoominfo.com"],
+    "category": "advertising",
+    "description": "B2B data platform that identifies your company from your IP address and reports your visit to the site owner as a sales lead.",
+    "logo": "https://www.zoominfo.com/favicon.ico"
+  },
+  {
+    "name": "iSpot.tv",
+    "company": "iSpot",
+    "domains": ["ispot.tv", "pixel.ispot.tv"],
+    "category": "advertising",
+    "description": "TV attribution platform that uses invisible pixels to link your website visits to TV ads you were exposed to, matching by IP.",
+    "logo": "https://www.ispot.tv/favicon.ico"
+  },
+  {
+    "name": "Algolia Insights",
+    "company": "Algolia",
+    "domains": ["insights.algolia.io", "insights.us.algolia.io"],
+    "category": "analytics",
+    "description": "Tracks which search results you click on and what you purchase after searching, to personalize future search rankings for you.",
+    "logo": "https://www.algolia.com/favicon.ico"
+  },
+  {
+    "name": "Google Maps API",
+    "company": "Google",
+    "domains": ["maps.googleapis.com", "maps.google.com"],
+    "category": "analytics",
+    "description": "Embedded Google Maps tells Google which sites you visit that use maps and can log your location interactions.",
+    "logo": "https://www.google.com/favicon.ico"
+  },
+  {
+    "name": "Mapbox",
+    "company": "Mapbox",
+    "domains": ["api.mapbox.com", "events.mapbox.com"],
+    "category": "analytics",
+    "description": "Mapping platform that logs API usage metrics including your location interactions and the referring site.",
+    "logo": "https://www.mapbox.com/favicon.ico"
+  },
+  {
+    "name": "Stripe Radar",
+    "company": "Stripe",
+    "domains": ["js.stripe.com", "m.stripe.com", "m.stripe.network"],
+    "category": "analytics",
+    "description": "Stripe's fraud detection network collects detailed browser fingerprint data including your device, plugins, and behavior patterns.",
+    "logo": "https://stripe.com/favicon.ico"
+  },
+  {
+    "name": "PayPal Tracking",
+    "company": "PayPal",
+    "domains": ["t.paypal.com", "www.paypalobjects.com"],
+    "category": "analytics",
+    "description": "PayPal's analytics scripts track your behavior on merchant sites to detect fraud and personalize checkout experiences.",
+    "logo": "https://www.paypal.com/favicon.ico"
+  },
+  {
+    "name": "Cloudfront Trackers",
+    "company": "Amazon",
+    "domains": ["cloudfront.net"],
+    "category": "analytics",
+    "description": "Amazon's CDN sometimes hosts third-party tracking scripts — when present, requests go through Amazon's infrastructure.",
+    "logo": "https://aws.amazon.com/favicon.ico"
+  },
+  {
+    "name": "SessionStack",
+    "company": "SessionStack",
+    "domains": ["cdn.sessionstack.com", "api.sessionstack.com"],
+    "category": "analytics",
+    "description": "Session replay and product analytics tool that records your complete browsing session as a video-like replay for debugging.",
+    "logo": "https://www.sessionstack.com/favicon.ico"
+  },
+  {
+    "name": "UserGuiding",
+    "company": "UserGuiding",
+    "domains": ["static.userguiding.com", "userguiding.com"],
+    "category": "analytics",
+    "description": "User onboarding platform that tracks which product tours you engage with and monitors your feature adoption over time.",
+    "logo": "https://userguiding.com/favicon.ico"
+  },
+  {
+    "name": "Pendo Feedback",
+    "company": "Pendo",
+    "domains": ["pendo.io", "app.us1.pendo.io", "data.pendo.io"],
+    "category": "analytics",
+    "description": "In-app NPS and feature request tool that links your feedback to your usage data to prioritize product decisions.",
+    "logo": "https://www.pendo.io/favicon.ico"
+  },
+  {
+    "name": "Oribi",
+    "company": "Oribi (LinkedIn)",
+    "domains": ["oribi.io", "cdn.oribi.io"],
+    "category": "analytics",
+    "description": "No-code analytics platform acquired by LinkedIn that tracks your behavioral events and funnels without requiring engineering work.",
+    "logo": "https://oribi.io/favicon.ico"
+  },
+  {
+    "name": "Heap.io (Server-side)",
+    "company": "Heap",
+    "domains": ["heapanalytics.com", "api.heapanalytics.com"],
+    "category": "analytics",
+    "description": "Auto-captures every interaction you make — clicks, form submissions, page views — without the site needing to define events in advance.",
+    "logo": "https://heap.io/favicon.ico"
+  },
+  {
+    "name": "Mouseflow Heatmaps",
+    "company": "Mouseflow",
+    "domains": ["a.mouseflow.com", "cdn.mouseflow.com"],
+    "category": "analytics",
+    "description": "Records individual sessions and aggregates mouse movement data into heatmaps showing exactly where users look and click.",
+    "logo": "https://mouseflow.com/favicon.ico"
   }
 ]
