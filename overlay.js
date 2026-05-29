@@ -268,22 +268,43 @@
       .cc-tooltip {
         position: fixed;
         width: 210px;
-        background: #09090b;
+        background: #1c1c1f;
         border: 1px solid #52525b;
-        border-radius: 6px;
-        padding: 7px 9px;
+        border-radius: 10px;
+        padding: 9px 12px;
         font-size: 11px;
-        color: #d4d4d8;
-        line-height: 1.4;
+        color: #e4e4e7;
+        line-height: 1.5;
         pointer-events: none;
         z-index: 2147483647;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.7);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         white-space: normal;
         opacity: 0;
-        transition: opacity 0.12s;
+        transition: opacity 0.15s;
       }
       .cc-tooltip.visible { opacity: 1; }
+
+      /* Right-pointing tail */
+      .cc-tooltip::before {
+        content: "";
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 7px solid transparent;
+        border-left-color: #52525b;
+      }
+      .cc-tooltip::after {
+        content: "";
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: -1px;
+        border: 6px solid transparent;
+        border-left-color: #1c1c1f;
+      }
 
       .cc-empty {
         font-size: 11px;

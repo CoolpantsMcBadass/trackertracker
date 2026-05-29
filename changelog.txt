@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.3.3] 2026-05-29
+- overlay.js: tooltip restyled as speech bubble — ::before draws border-colored tail, ::after draws fill-colored tail on top, creating a right-pointing arrow that points back at the hovered tracker row; slightly larger padding, rounder corners, lighter text
+
 [0.3.2] 2026-05-29
 - overlay.js: fixed tooltip not appearing — root cause was overflow-y:auto on .cc-list clipping absolutely-positioned children; replaced CSS :hover tooltip with a single shared position:fixed tooltip appended to shadow root, shown/hidden via JS mouseenter/mouseleave with viewport-relative coordinates
 
