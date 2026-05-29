@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.4.5] 2026-05-29
+- overlay.js: added light/dark mode toggle in settings popout; dark is default; toggling adds/removes cc-light class on the shadow host; all overlay elements (pill, panel, header, badges, category labels, tracker logos, tooltip, settings popout) re-skin via :host(.cc-light) CSS overrides; preference persisted to chrome.storage.local as overlayTheme
+
 [0.4.4] 2026-05-29
 - overlay.js: fix gear button swallowing click — startDrag now bails early if the mousedown target is a button/input/label/a, preventing e.preventDefault() from suppressing click events on interactive elements in the drag handle area
 

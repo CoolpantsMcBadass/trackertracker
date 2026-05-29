@@ -451,6 +451,68 @@
         padding: 14px 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
+
+      /* ── Light mode overrides ─────────────────────────────────────────── */
+      :host(.cc-light) .cc-pill {
+        background: #ffffff; border-color: #d4d4d8;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      }
+      :host(.cc-light) .cc-pill:hover { background: #f4f4f5; border-color: #a1a1aa; }
+      :host(.cc-light) .cc-badge.zero { background: #e4e4e7; color: #52525b; }
+
+      :host(.cc-light) .cc-panel {
+        background: #ffffff; border-color: #d4d4d8;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      }
+      :host(.cc-light) .cc-panel-header { border-bottom-color: #d4d4d8; }
+      :host(.cc-light) .cc-panel-title  { color: #18181b; }
+      :host(.cc-light) .cc-close,
+      :host(.cc-light) .cc-settings-btn { color: #71717a; }
+      :host(.cc-light) .cc-close:hover,
+      :host(.cc-light) .cc-settings-btn:hover { color: #18181b; background: #e4e4e7; }
+      :host(.cc-light) .cc-settings-btn.active { color: #d97706; background: #e4e4e7; }
+
+      :host(.cc-light) .cc-banner-row   { border-bottom-color: #d4d4d8; color: #52525b; }
+      :host(.cc-light) .cc-count-num    { color: #d97706; }
+      :host(.cc-light) .cc-count-label  { color: #71717a; }
+
+      :host(.cc-light) .cc-list::-webkit-scrollbar-thumb { background: #d4d4d8; }
+      :host(.cc-light) .cc-tracker-item:hover { background: #f4f4f5; }
+      :host(.cc-light) .cc-tracker-name { color: #18181b; }
+      :host(.cc-light) .cc-tracker-logo { background: #e4e4e7; }
+      :host(.cc-light) .cc-tracker-logo-fb { background: #e4e4e7; color: #52525b; }
+      :host(.cc-light) .cc-empty        { color: #a1a1aa; }
+
+      :host(.cc-light) .cat-advertising { background:#fee2e2; color:#991b1b; }
+      :host(.cc-light) .cat-analytics   { background:#dbeafe; color:#1d4ed8; }
+      :host(.cc-light) .cat-social      { background:#f3e8ff; color:#7e22ce; }
+      :host(.cc-light) .cat-marketing   { background:#dcfce7; color:#166534; }
+      :host(.cc-light) .cat-support     { background:#f5f5f4; color:#44403c; }
+      :host(.cc-light) .cat-performance { background:#f0fdf4; color:#166534; }
+      :host(.cc-light) .cat-other       { background:#f4f4f5; color:#52525b; }
+
+      :host(.cc-light) .cc-tooltip {
+        background: #ffffff; border-color: #d4d4d8; color: #18181b;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      }
+      :host(.cc-light) .cc-tooltip::before { border-left-color: #d4d4d8; }
+      :host(.cc-light) .cc-tooltip::after  { border-left-color: #ffffff; }
+
+      :host(.cc-light) .cc-settings-popout {
+        background: #ffffff; border-color: #d4d4d8;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+      }
+      :host(.cc-light) .cc-settings-popout::before { border-left-color: #d4d4d8; }
+      :host(.cc-light) .cc-settings-popout::after  { border-left-color: #ffffff; }
+      :host(.cc-light) .cc-sp-header     { border-bottom-color: #e4e4e7; color: #71717a; }
+      :host(.cc-light) .cc-setting-label { color: #18181b; }
+      :host(.cc-light) .cc-setting-sub   { color: #71717a; }
+      :host(.cc-light) .cc-toggle-track  { background: #d4d4d8; }
+      :host(.cc-light) .cc-toggle-wrap input:checked + .cc-toggle-track { background: #d97706; }
+      :host(.cc-light) .cc-setting-divider { background: #e4e4e7; }
+      :host(.cc-light) .cc-reset-btn     { background: #f4f4f5; border-color: #d4d4d8; color: #52525b; }
+      :host(.cc-light) .cc-reset-btn:hover { background: #e4e4e7; color: #18181b; }
+
     </style>
 
     <!-- Pill button -->
@@ -540,13 +602,43 @@
       </label>
     </div>
     <div class="cc-setting-divider"></div>
+    <div class="cc-setting-row">
+      <div class="cc-setting-text">
+        <span class="cc-setting-label">Light mode</span>
+      </div>
+      <label class="cc-toggle-wrap">
+        <input type="checkbox" id="cc-theme-toggle" />
+        <span class="cc-toggle-track"><span class="cc-toggle-thumb"></span></span>
+      </label>
+    </div>
+    <div class="cc-setting-divider"></div>
     <button class="cc-reset-btn" id="cc-reset-pos">↖ Reset position to default</button>
   `;
   shadow.appendChild(settingsPopout);
 
   const siteToggle   = settingsPopout.querySelector("#cc-site-toggle");
   const siteHostname = settingsPopout.querySelector("#cc-site-hostname");
+  const themeToggle  = settingsPopout.querySelector("#cc-theme-toggle");
   const resetPosBtn  = settingsPopout.querySelector("#cc-reset-pos");
+
+  // ── Theme ─────────────────────────────────────────────────────────────────
+
+  function applyTheme(light) {
+    if (light) host.classList.add("cc-light");
+    else        host.classList.remove("cc-light");
+    themeToggle.checked = light;
+  }
+
+  themeToggle.addEventListener("change", () => {
+    const light = themeToggle.checked;
+    applyTheme(light);
+    chrome.storage.local.set({ overlayTheme: light ? "light" : "dark" });
+  });
+
+  // Load saved theme on init (dark is default so only act on "light")
+  chrome.storage.local.get("overlayTheme", (data) => {
+    applyTheme(data.overlayTheme === "light");
+  });
 
   // Shared tooltip — lives at shadow root level so it's not clipped by list overflow
   const sharedTooltip = document.createElement("div");
