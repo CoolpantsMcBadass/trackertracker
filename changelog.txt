@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.4.4] 2026-05-29
+- overlay.js: fix gear button swallowing click — startDrag now bails early if the mousedown target is a button/input/label/a, preventing e.preventDefault() from suppressing click events on interactive elements in the drag handle area
+
 [0.4.3] 2026-05-29
 - overlay.js: settings now pop out as a separate floating panel to the left of the main panel instead of replacing the tracker list; popout is a fixed-position shadow-root-level div with a right-pointing speech-bubble tail; tracker list stays fully visible; popout closes on outside click or gear button re-click
 

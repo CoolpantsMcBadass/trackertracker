@@ -700,6 +700,8 @@
 
   function startDrag(e) {
     if (e.button !== 0) return;
+    // Let clicks on buttons/inputs through — don't hijack them as drags
+    if (e.target.closest("button, input, label, a, select")) return;
     e.preventDefault();
     e.stopPropagation();
 
