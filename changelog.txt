@@ -1,6 +1,9 @@
 Cookiecutter Changelog
 ======================
 
+[0.4.2] 2026-05-29
+- overlay.js: added ⚙ settings button to panel header; clicking it swaps the tracker list for a settings view containing: per-site enable/disable toggle (hides widget when disabled, reads/writes via background messages) and a reset-position button (restores top-right default and clears chrome.storage.local entry); settings view closes when panel closes; gear icon turns amber when settings are open
+
 [0.4.1] 2026-05-29
 - overlay.js: added click-and-drag to reposition the widget anywhere on screen; pill and panel header both act as drag handles; 4px movement threshold distinguishes drag from click so toggle still works; cursor changes to grabbing during drag; tooltip hides during drag; position persisted to chrome.storage.local and restored on next page load with viewport clamping
 
