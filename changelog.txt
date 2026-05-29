@@ -1,0 +1,11 @@
+Cookiecutter Changelog
+======================
+
+[0.1.0] 2026-05-29
+- Initial scaffold
+- manifest.json (MV3) with webRequest + storage + tabs + scripting permissions
+- background.js: service worker with webRequest interception, tracker domain matching, per-tab badge count, banner status storage, site enable/disable toggle
+- content.js: cookie banner auto-decliner targeting OneTrust, Cookiebot, TrustArc, Osano, Termly, Didomi, Quantcast, Usercentrics, Consentmanager, CookieYes + generic fuzzy text matching; MutationObserver for late-loading banners
+- popup/popup.html + popup.css + popup.js: dark-theme popup with tracker list (name, logo, category badge, plain-English description), banner status indicator, per-site toggle
+- data/trackers.json: 50 trackers across advertising, analytics, social, marketing, support, performance categories
+- icons: cookie-with-knife SVG + exported PNG at 16/48/128px

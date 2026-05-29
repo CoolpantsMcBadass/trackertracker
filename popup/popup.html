@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cookiecutter</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="logo-row">
+      <img src="../icons/icon48.png" class="logo-img" alt="Cookiecutter" />
+      <span class="app-name">Cookiecutter</span>
+    </div>
+    <label class="toggle-wrap" title="Enable/disable on this site">
+      <input type="checkbox" id="siteToggle" checked />
+      <span class="toggle-track">
+        <span class="toggle-thumb"></span>
+      </span>
+    </label>
+  </header>
+
+  <div id="disabledBanner" class="disabled-banner hidden">
+    Cookiecutter is off for this site.
+  </div>
+
+  <section class="banner-status" id="bannerStatus">
+    <div id="bannerFound" class="status-row hidden">
+      <span class="status-icon status-ok">✓</span>
+      <span>Cookie banner found and declined</span>
+    </div>
+    <div id="bannerFoundOnly" class="status-row hidden">
+      <span class="status-icon status-warn">!</span>
+      <span>Cookie banner found — couldn't auto-decline</span>
+    </div>
+    <div id="bannerNone" class="status-row">
+      <span class="status-icon status-neutral">–</span>
+      <span>No cookie banner detected</span>
+    </div>
+  </section>
+
+  <section class="tracker-section">
+    <div class="section-header">
+      <span id="trackerCount" class="tracker-count">0</span>
+      <span class="section-title">trackers on this page</span>
+    </div>
+
+    <div id="trackerList" class="tracker-list">
+      <div id="emptyState" class="empty-state">
+        No trackers detected yet.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <a href="https://github.com/CoolpantsMcBadass/cookiecutter" target="_blank" rel="noopener">
+      Open source — view on GitHub
+    </a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
