@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrackerTracker - Privacy Policy</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 48px auto; padding: 0 24px; color: #222; line-height: 1.7; }
+    h1 { font-size: 1.6rem; margin-bottom: 4px; }
+    h2 { font-size: 1.1rem; margin-top: 2rem; }
+    p, li { font-size: 0.97rem; }
+    a { color: #1a73e8; }
+    .updated { color: #666; font-size: 0.88rem; margin-bottom: 2rem; }
+  </style>
+</head>
+<body>
+  <h1>TrackerTracker Privacy Policy</h1>
+  <p class="updated">Last updated: June 1, 2026</p>
+
+  <h2>What TrackerTracker does</h2>
+  <p>TrackerTracker is a Chrome browser extension that detects third-party trackers on websites you visit, lets you block them selectively or all at once, and auto-declines cookie consent banners on your behalf.</p>
+
+  <h2>Data we collect</h2>
+  <p><strong>None.</strong> TrackerTracker does not collect, transmit, sell, or share any personal data. Everything the extension does happens locally on your device.</p>
+
+  <h2>What the extension accesses and why</h2>
+  <ul>
+    <li><strong>URLs of pages you visit</strong> - used locally to detect which trackers are present on the current page. This information is never sent anywhere.</li>
+    <li><strong>Network requests</strong> - inspected locally via Chrome's <code>declarativeNetRequest</code> and <code>webRequest</code> APIs to identify and optionally block tracker domains. No request data leaves your device.</li>
+    <li><strong>Tab information</strong> - used to associate tracker counts with the correct browser tab. Not stored or transmitted.</li>
+    <li><strong>Extension storage</strong> - your blocking preferences and UI settings (e.g. light/dark mode) are saved locally in Chrome's extension storage. This data stays on your device.</li>
+    <li><strong>Page content (scripting)</strong> - a content script runs on pages you visit to detect and dismiss cookie consent banners. It does not read or exfiltrate page content.</li>
+  </ul>
+
+  <h2>Third-party data</h2>
+  <p>The extension bundles a local copy of the <a href="https://github.com/ghostery/trackerdb" target="_blank">Ghostery TrackerDB</a> tracker database (CC BY-NC-SA 4.0). This database is stored inside the extension package - no external servers are contacted at runtime.</p>
+
+  <h2>No external servers</h2>
+  <p>TrackerTracker makes no network requests of its own. It does not "phone home," send analytics, or contact any remote API.</p>
+
+  <h2>Children's privacy</h2>
+  <p>TrackerTracker does not knowingly collect any information from anyone, including children under 13.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If the privacy practices change in a meaningful way, this page will be updated and the "Last updated" date will change.</p>
+
+  <h2>Contact</h2>
+  <p>Questions? Open an issue at <a href="https://github.com/CoolpantsMcBadass/trackertracker/issues" target="_blank">github.com/CoolpantsMcBadass/trackertracker</a>.</p>
+</body>
+</html>

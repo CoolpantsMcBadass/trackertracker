@@ -1,13 +1,21 @@
-// TrackerTracker — Service Worker
+// TrackerTracker - Service Worker
 // Intercepts network requests, matches against tracker list, updates badge
 
 const tabTrackers = new Map(); // tabId -> Map(trackerName -> trackerInfo)
 const tabBannerStatus = new Map(); // tabId -> { found: bool, declined: bool }
-const disabledSites = new Set(); // hostnames where Cookiecutter is disabled
+const disabledSites = new Set(); // hostnames where extension is disabled
 const pushTimers = new Map(); // tabId -> debounce timer for overlay push
+const pushFired = new Map();  // tabId -> bool, true after first push this page load
 const blockedTrackers = new Map(); // trackerName -> domains[]
 
+let blockAllEnabled = false; // preemptive block-all currently active
+let blockAllDefault = false; // apply block-all automatically on every startup
+
 // ── Blocking via declarativeNetRequest ───────────────────────────────────────
+
+// Individual tracker blocks use IDs 10000–59999 (hash-derived).
+// Preemptive block-all uses sequential IDs from 100000 upward (no collisions).
+const BLOCK_ALL_ID_BASE = 100000;
 
 // Derive a stable integer rule ID from a domain string (range 10000–59999)
 function domainToRuleId(domain) {
@@ -49,14 +57,36 @@ function saveBlockedTrackers() {
   chrome.storage.local.set({ blockedTrackers: obj });
 }
 
-// Restore blocked rules from storage on SW startup
-chrome.storage.local.get("blockedTrackers", async (data) => {
-  if (!data.blockedTrackers) return;
-  for (const [name, domains] of Object.entries(data.blockedTrackers)) {
-    blockedTrackers.set(name, domains);
-    await addBlockRules(domains);
+// ── Preemptive block-all ─────────────────────────────────────────────────────
+
+async function enableBlockAll() {
+  const rules = [];
+  let id = BLOCK_ALL_ID_BASE;
+  for (const tracker of trackerList) {
+    for (const domain of tracker.domains) {
+      rules.push({
+        id: id++,
+        priority: 3,
+        action: { type: "block" },
+        condition: { urlFilter: `||${domain}`, resourceTypes: BLOCK_RESOURCE_TYPES }
+      });
+    }
   }
-});
+  // Clear any stale block-all rules before adding fresh ones
+  const existing = await chrome.declarativeNetRequest.getDynamicRules();
+  const staleIds = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: staleIds, addRules: rules });
+  blockAllEnabled = true;
+  chrome.storage.local.set({ blockAllEnabled: true });
+}
+
+async function disableBlockAll() {
+  const existing = await chrome.declarativeNetRequest.getDynamicRules();
+  const ids = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
+  if (ids.length) await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
+  blockAllEnabled = false;
+  chrome.storage.local.set({ blockAllEnabled: false });
+}
 
 let trackerList = [];
 let domainIndex = new Map(); // domain fragment -> tracker entry
@@ -77,10 +107,12 @@ async function loadTrackers() {
 function matchTracker(url) {
   try {
     const hostname = new URL(url).hostname;
-    for (const [domain, tracker] of domainIndex) {
-      if (hostname === domain || hostname.endsWith("." + domain)) {
-        return tracker;
-      }
+    const parts = hostname.split('.');
+    // Try from most-specific to least-specific suffix (O(parts) map lookups)
+    for (let i = 0; i < parts.length - 1; i++) {
+      const candidate = parts.slice(i).join('.');
+      const tracker = domainIndex.get(candidate);
+      if (tracker) return tracker;
     }
   } catch (_) {}
   return null;
@@ -96,11 +128,35 @@ function updateBadge(tabId) {
   chrome.action.setBadgeTextColor({ color: "#1a1a1a", tabId });
 }
 
-chrome.runtime.onInstalled.addListener(loadTrackers);
-chrome.runtime.onStartup.addListener(loadTrackers);
+// Single init - loads trackers first, then restores persisted settings in order
+async function init() {
+  await loadTrackers();
 
-// Load on SW wake-up (in case onInstalled/onStartup didn't fire)
-loadTrackers();
+  const data = await chrome.storage.local.get([
+    "blockedTrackers", "disabledSites", "blockAllEnabled", "blockAllDefault"
+  ]);
+
+  if (data.disabledSites) {
+    for (const host of data.disabledSites) disabledSites.add(host);
+  }
+
+  if (data.blockedTrackers) {
+    for (const [name, domains] of Object.entries(data.blockedTrackers)) {
+      blockedTrackers.set(name, domains);
+      await addBlockRules(domains);
+    }
+  }
+
+  blockAllDefault = data.blockAllDefault || false;
+
+  if (data.blockAllEnabled || blockAllDefault) {
+    await enableBlockAll();
+  }
+}
+
+chrome.runtime.onInstalled.addListener(init);
+chrome.runtime.onStartup.addListener(init);
+init();
 
 // Intercept requests and detect trackers
 chrome.webRequest.onBeforeRequest.addListener(
@@ -126,18 +182,34 @@ chrome.webRequest.onBeforeRequest.addListener(
   { urls: ["<all_urls>"] }
 );
 
-// Debounced push to overlay content script
+// Push tracker list to overlay. First detection fires immediately; subsequent
+// detections within the same page load are debounced to avoid flooding.
 function schedulePush(tabId) {
-  clearTimeout(pushTimers.get(tabId));
-  pushTimers.set(tabId, setTimeout(() => {
+  if (!pushFired.get(tabId)) {
+    // First tracker on this page - push right away
+    pushFired.set(tabId, true);
+    clearTimeout(pushTimers.get(tabId));
     pushTimers.delete(tabId);
     const trackers = tabTrackers.get(tabId);
-    if (!trackers) return;
-    chrome.tabs.sendMessage(tabId, {
-      type: "TRACKER_UPDATE",
-      trackers: Array.from(trackers.values()),
-    }).catch(() => {}); // tab may not have content script (e.g. chrome:// pages)
-  }, 400));
+    if (trackers) {
+      chrome.tabs.sendMessage(tabId, {
+        type: "TRACKER_UPDATE",
+        trackers: Array.from(trackers.values()),
+      }).catch(() => {});
+    }
+  } else {
+    // Additional trackers - debounce to batch them
+    clearTimeout(pushTimers.get(tabId));
+    pushTimers.set(tabId, setTimeout(() => {
+      pushTimers.delete(tabId);
+      const trackers = tabTrackers.get(tabId);
+      if (!trackers) return;
+      chrome.tabs.sendMessage(tabId, {
+        type: "TRACKER_UPDATE",
+        trackers: Array.from(trackers.values()),
+      }).catch(() => {});
+    }, 400));
+  }
 }
 
 // Clear tracker data when tab navigates
@@ -145,6 +217,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === "loading") {
     tabTrackers.delete(tabId);
     tabBannerStatus.delete(tabId);
+    pushFired.delete(tabId);
     updateBadge(tabId);
   }
 });
@@ -153,9 +226,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
 chrome.tabs.onRemoved.addListener((tabId) => {
   tabTrackers.delete(tabId);
   tabBannerStatus.delete(tabId);
+  pushFired.delete(tabId);
 });
 
-// Message handler — popup and content script communicate here
+// Message handler - popup and content script communicate here
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "GET_TAB_DATA") {
     const tabId = msg.tabId;
@@ -170,7 +244,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "GET_MY_TAB_DATA") {
-    // Called by the overlay on load — sender.tab.id is the current tab
+    // Called by the overlay on load - sender.tab.id is the current tab
     const tabId = sender.tab?.id;
     if (tabId == null) { sendResponse(null); return true; }
     const trackers = tabTrackers.get(tabId) || new Map();
@@ -242,13 +316,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     });
     return true;
   }
-});
 
-// Restore disabled sites from storage on startup
-chrome.storage.local.get("disabledSites", (data) => {
-  if (data.disabledSites) {
-    for (const host of data.disabledSites) {
-      disabledSites.add(host);
-    }
+  if (msg.type === "GET_BLOCK_ALL") {
+    sendResponse({ enabled: blockAllEnabled, default: blockAllDefault });
+    return true;
+  }
+
+  if (msg.type === "SET_BLOCK_ALL") {
+    const fn = msg.enabled ? enableBlockAll : disableBlockAll;
+    fn().then(() => sendResponse({ ok: true }));
+    return true;
+  }
+
+  if (msg.type === "SET_BLOCK_ALL_DEFAULT") {
+    blockAllDefault = msg.enabled;
+    chrome.storage.local.set({ blockAllDefault: msg.enabled });
+    sendResponse({ ok: true });
+    return true;
   }
 });
+

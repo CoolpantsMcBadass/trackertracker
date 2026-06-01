@@ -1,1069 +1,728 @@
-// TrackerTracker — Page Overlay
-// Injects a floating icon into pages that expands to show live tracker info.
-// Uses Shadow DOM for complete style isolation.
+// TrackerTracker - Page Overlay
+// Floating panel injected into pages via Shadow DOM.
 
 (function () {
   "use strict";
 
-  if (document.getElementById("trackertracker-host")) return; // already injected
+  if (document.getElementById("trackertracker-host")) return;
 
-  // ── State ────────────────────────────────────────────────────────────────
-
-  let trackers = [];
+  // ── State ──────────────────────────────────────────────────────────────────
+  let trackers     = [];
   let bannerStatus = { found: false, declined: false };
-  let expanded = false;
-  let blockedSet = new Set(); // tracker names the user has blocked
+  let expanded     = false;
+  let activeTab    = "page"; // "page" | "settings"
+  let blockedSet   = new Set();
+  let allTrackers  = null;   // cached full list for blocklist
+  let searchQuery  = "";
+  let lightMode    = false;
 
-  // ── Shadow DOM setup ─────────────────────────────────────────────────────
+  const CAT_ORDER  = ["advertising","analytics","social","marketing","support","performance","other"];
+  const CAT_LABELS = {
+    advertising:"Advertising", analytics:"Analytics", social:"Social",
+    marketing:"Marketing", support:"Support", performance:"Performance", other:"Other"
+  };
+  const CAT_BADGE  = {
+    advertising:"Ads", analytics:"Analytics", social:"Social",
+    marketing:"Marketing", support:"Support", performance:"Perf", other:"Other"
+  };
 
+  // ── Shadow DOM ─────────────────────────────────────────────────────────────
   const host = document.createElement("div");
   host.id = "trackertracker-host";
   Object.assign(host.style, {
-    position: "fixed",
-    top: "20px",
-    right: "20px",
-    zIndex: "2147483647",
-    fontFamily: "inherit",
-    lineHeight: "normal",
+    position:"fixed", top:"20px", right:"20px",
+    zIndex:"2147483647", fontFamily:"inherit", lineHeight:"normal",
   });
 
-  const shadow = host.attachShadow({ mode: "closed" });
+  const shadow = host.attachShadow({ mode:"closed" });
 
   shadow.innerHTML = `
-    <style>
-      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :host { all:initial; }
 
-      :host { all: initial; }
+    /* ── Pill ── */
+    .cc-pill {
+      display:flex; align-items:center; gap:6px;
+      background:#15191e; border:1px solid #2a3347;
+      border-radius:20px; padding:6px 11px 6px 8px;
+      cursor:pointer; user-select:none;
+      box-shadow:0 2px 16px rgba(0,0,0,0.6);
+      transition:background 0.15s, border-color 0.15s;
+      white-space:nowrap;
+    }
+    .cc-pill:hover { background:#1c2233; border-color:#3d5170; }
+    .cc-pill.dragging { cursor:grabbing !important; }
 
-      .cc-pill {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: #0d1117;
-        border: 1px solid #1e2d42;
-        border-radius: 20px;
-        padding: 6px 10px 6px 8px;
-        cursor: pointer;
-        user-select: none;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-        transition: background 0.15s, border-color 0.15s;
-        white-space: nowrap;
-      }
-      .cc-pill:hover { background: #111827; border-color: #374d6a; }
-      .cc-pill.dragging { cursor: grabbing !important; }
+    .cc-icon { width:18px; height:18px; flex-shrink:0; }
 
-      .cc-icon {
-        width: 18px;
-        height: 18px;
-        flex-shrink: 0;
-      }
+    .cc-badge {
+      font-size:12px; font-weight:700; color:#dde4f0; line-height:1;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    .cc-badge.zero { color:#3d5170; }
 
-      .cc-badge {
-        font-size: 12px;
-        font-weight: 700;
-        color: #e8f0ff;
-        line-height: 1;
-      }
-      .cc-badge.zero { color: #374d6a; }
+    /* ── Panel ── */
+    .cc-panel {
+      position:absolute; top:calc(100% + 8px); right:0;
+      width:300px; background:#15191e;
+      border:1px solid #2a3347; border-radius:10px;
+      box-shadow:0 6px 30px rgba(0,0,0,0.7);
+      overflow:hidden; display:none; flex-direction:column;
+      max-height:480px;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    .cc-panel.open { display:flex; }
 
-      /* ── Panel ── */
-      .cc-panel {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        width: 260px;
-        background: #0d1117;
-        border: 1px solid #1e2d42;
-        border-radius: 10px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.6);
-        overflow: hidden;
-        display: none;
-        flex-direction: column;
-      }
-      .cc-panel.open { display: flex; }
+    /* Header */
+    .cc-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 12px 9px; border-bottom:1px solid #2a3347;
+      cursor:grab; flex-shrink:0;
+    }
+    .cc-header:active { cursor:grabbing; }
+    .cc-header-left { display:flex; align-items:center; gap:7px; }
+    .cc-header-right { display:flex; align-items:center; gap:2px; }
+    .cc-header-icon { width:16px; height:16px; flex-shrink:0; }
+    .cc-header-title {
+      font-size:13px; font-weight:700; color:#dde4f0; letter-spacing:-0.01em;
+    }
+    .cc-gear-btn {
+      background:none; border:none; color:#3d5170; cursor:pointer;
+      width:22px; height:22px; border-radius:4px; display:flex;
+      align-items:center; justify-content:center; padding:0;
+      transition:color 0.1s, background 0.1s; flex-shrink:0;
+    }
+    .cc-gear-btn svg { width:14px; height:14px; }
+    .cc-gear-btn:hover { color:#dde4f0; background:#1c2233; }
+    .cc-gear-btn.active { color:#f2e840; }
+    .cc-close {
+      background:none; border:none; color:#3d5170; cursor:pointer;
+      width:20px; height:20px; border-radius:4px; display:flex;
+      align-items:center; justify-content:center; font-size:13px;
+      transition:color 0.1s, background 0.1s; flex-shrink:0;
+    }
+    .cc-close:hover { color:#dde4f0; background:#1c2233; }
 
-      .cc-panel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 9px 11px;
-        border-bottom: 1px solid #1e2d42;
-      }
+    /* Search */
+    .cc-search-row {
+      display:flex; align-items:center; gap:8px;
+      padding:7px 12px; border-bottom:1px solid #2a3347; flex-shrink:0;
+    }
+    .cc-search-icon { width:13px; height:13px; color:#3d5170; flex-shrink:0; }
+    .cc-search-input {
+      flex:1; background:none; border:none; outline:none;
+      color:#dde4f0; font-size:12px;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    .cc-search-input::placeholder { color:#3d5170; }
 
-      .cc-panel-title-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
+    /* Tab content */
+    .cc-tab { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+    .cc-tab.hidden { display:none; }
+    .cc-tab::-webkit-scrollbar { width:4px; }
+    .cc-tab::-webkit-scrollbar-track { background:transparent; }
+    .cc-tab::-webkit-scrollbar-thumb { background:#2a3347; border-radius:4px; }
 
-      .cc-panel-icon {
-        width: 14px;
-        height: 14px;
-        flex-shrink: 0;
-      }
+    /* Banner chip */
+    .cc-banner-chip {
+      margin:8px 12px 0; padding:5px 8px; border-radius:4px;
+      font-size:11px; display:flex; align-items:center; gap:5px; flex-shrink:0;
+    }
+    .cc-banner-chip.chip-ok   { background:rgba(34,197,94,0.12); color:#4ade80; }
+    .cc-banner-chip.chip-warn { background:rgba(245,158,11,0.12); color:#fbbf24; }
+    .cc-banner-chip.chip-none { background:#1c2233; color:#5d7190; }
+    .cc-banner-chip.hidden    { display:none; }
 
-      .cc-panel-title {
-        font-size: 12px;
-        font-weight: 700;
-        color: #e8f0ff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        letter-spacing: -0.01em;
-      }
+    /* Summary row */
+    .cc-summary {
+      display:flex; align-items:baseline; gap:5px;
+      padding:8px 12px 4px; flex-shrink:0;
+    }
+    .cc-count { font-size:22px; font-weight:800; color:#f2e840; line-height:1; }
+    .cc-count-label { font-size:11px; color:#5d7190; }
 
-      .cc-header-actions {
-        display: flex;
-        align-items: center;
-        gap: 2px;
-      }
+    /* Category section */
+    .cc-cat-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:5px 12px 3px; position:sticky; top:0;
+      background:#15191e; z-index:1;
+    }
+    .cc-cat-name {
+      font-size:10px; font-weight:700; letter-spacing:0.08em;
+      text-transform:uppercase; color:#3d5170;
+    }
+    .cc-cat-count { font-size:10px; font-weight:600; color:#3d5170; }
 
-      .cc-close, .cc-settings-btn {
-        background: none;
-        border: none;
-        color: #5b7a9e;
-        cursor: pointer;
-        padding: 0;
-        line-height: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
-        transition: color 0.1s, background 0.1s;
-        flex-shrink: 0;
-      }
-      .cc-close { font-size: 13px; }
-      .cc-settings-btn { font-size: 14px; }
-      .cc-close:hover, .cc-settings-btn:hover { color: #e8f0ff; background: #1e2d42; }
-      .cc-settings-btn.active { color: #f2e840; background: #1e2d42; }
+    /* Tracker row */
+    .cc-row {
+      display:flex; align-items:center; gap:8px;
+      padding:6px 12px; transition:background 0.1s; cursor:default;
+      position:relative;
+    }
+    .cc-row:hover { background:#1c2233; }
 
-      /* ── Settings popout (floating, lives at shadow root level) ── */
-      .cc-settings-popout {
-        position: fixed;
-        width: 270px;
-        background: #0d1117;
-        border: 1px solid #1e2d42;
-        border-radius: 10px;
-        box-shadow: 0 6px 24px rgba(0,0,0,0.65);
-        z-index: 2147483647;
-        overflow: hidden;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.15s;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-      .cc-settings-popout.visible {
-        opacity: 1;
-        pointer-events: all;
-      }
+    .cc-row-logo {
+      width:18px; height:18px; border-radius:3px; flex-shrink:0;
+      object-fit:contain; background:#1c2233;
+    }
+    .cc-row-logo-fb {
+      width:18px; height:18px; border-radius:3px; flex-shrink:0;
+      background:#1c2233; display:flex; align-items:center; justify-content:center;
+      font-size:8px; font-weight:700; color:#5d7190;
+    }
+    .cc-row-name {
+      flex:1; font-size:11px; font-weight:600; color:#dde4f0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .cc-row-cat {
+      font-size:9px; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.04em; padding:1px 4px; border-radius:3px;
+      white-space:nowrap; flex-shrink:0;
+    }
 
-      /* Right-pointing tail (mirrors the tooltip arrow) */
-      .cc-settings-popout::before {
-        content: "";
-        position: absolute;
-        left: 100%;
-        top: 14px;
-        border: 7px solid transparent;
-        border-left-color: #1e2d42;
-      }
-      .cc-settings-popout::after {
-        content: "";
-        position: absolute;
-        left: 100%;
-        top: 14px;
-        margin-left: -1px;
-        border: 6px solid transparent;
-        border-left-color: #0d1117;
-      }
+    /* Block button */
+    .cc-block-btn {
+      background:none; border:none; color:#2a3347; cursor:pointer;
+      font-size:14px; line-height:1; padding:0 1px; flex-shrink:0;
+      opacity:0; transition:opacity 0.1s,color 0.1s;
+    }
+    .cc-row:hover .cc-block-btn { opacity:1; }
+    .cc-block-btn:hover { color:#ef4444; }
+    .cc-block-btn.blocked { opacity:1; color:#ef4444; }
+    .cc-row.is-blocked .cc-row-name { opacity:0.35; text-decoration:line-through; }
+    .cc-row.is-blocked .cc-row-cat  { opacity:0.35; }
+    .cc-row.is-blocked .cc-row-logo,
+    .cc-row.is-blocked .cc-row-logo-fb { opacity:0.35; }
 
-      .cc-sp-header {
-        padding: 8px 11px 7px;
-        border-bottom: 1px solid #1e2d42;
-        font-size: 11px;
-        font-weight: 700;
-        color: #8b9abf;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-      }
+    /* Category badge colours */
+    .cat-advertising { background:#7f1d1d; color:#fca5a5; }
+    .cat-analytics   { background:#1e3a5f; color:#93c5fd; }
+    .cat-social      { background:#3b0764; color:#d8b4fe; }
+    .cat-marketing   { background:#14532d; color:#86efac; }
+    .cat-support     { background:#1c1917; color:#a8a29e; }
+    .cat-performance { background:#1c2a1c; color:#a3d9a5; }
+    .cat-other       { background:#1c2233; color:#5d7190; }
 
-      .cc-setting-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 9px 11px;
-        gap: 10px;
-      }
-      .cc-setting-label {
-        font-size: 11px;
-        color: #d4d4d8;
-      }
-      .cc-setting-sub {
-        font-size: 10px;
-        color: #5b7a9e;
-        margin-top: 1px;
-      }
-      .cc-setting-text { display: flex; flex-direction: column; }
+    /* Tooltip */
+    .cc-tooltip {
+      position:fixed; width:200px; background:#0d111a;
+      border:1px solid #2a3347; border-radius:8px;
+      padding:8px 10px; font-size:11px; color:#c8d4e8; line-height:1.5;
+      pointer-events:none; z-index:2147483647;
+      box-shadow:0 6px 20px rgba(0,0,0,0.7);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      white-space:normal; opacity:0; transition:opacity 0.15s;
+    }
+    .cc-tooltip.visible { opacity:1; }
+    .cc-tooltip::before {
+      content:""; position:absolute; left:100%; top:50%;
+      transform:translateY(-50%); border:6px solid transparent;
+      border-left-color:#2a3347;
+    }
+    .cc-tooltip::after {
+      content:""; position:absolute; left:100%; top:50%;
+      transform:translateY(-50%); margin-left:-1px;
+      border:5px solid transparent; border-left-color:#0d111a;
+    }
 
-      .cc-toggle-wrap {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        flex-shrink: 0;
-      }
-      .cc-toggle-wrap input {
-        position: absolute;
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-      .cc-toggle-track {
-        display: block;
-        width: 30px;
-        height: 17px;
-        background: #1e2d42;
-        border-radius: 17px;
-        position: relative;
-        transition: background 0.2s;
-      }
-      .cc-toggle-wrap input:checked + .cc-toggle-track { background: #f2e840; }
-      .cc-toggle-thumb {
-        position: absolute;
-        left: 2px;
-        top: 2px;
-        width: 13px;
-        height: 13px;
-        background: #fff;
-        border-radius: 50%;
-        transition: transform 0.2s;
-      }
-      .cc-toggle-wrap input:checked + .cc-toggle-track .cc-toggle-thumb {
-        transform: translateX(13px);
-      }
+    /* Empty state */
+    .cc-empty {
+      font-size:11px; color:#3d5170; text-align:center; padding:20px 0;
+    }
 
-      .cc-setting-divider {
-        height: 1px;
-        background: #1e2d42;
-        margin: 0 11px;
-      }
+    /* ── Settings tab ── */
+    .cc-settings-group { padding:8px 0 2px; }
+    .cc-settings-label {
+      font-size:10px; font-weight:700; letter-spacing:0.08em;
+      text-transform:uppercase; color:#3d5170; padding:0 12px 4px;
+    }
+    .cc-setting-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px 12px; gap:10px; transition:background 0.1s;
+    }
+    .cc-setting-row:hover { background:#1c2233; }
+    .cc-setting-text { flex:1; min-width:0; }
+    .cc-setting-name { display:block; font-size:12px; font-weight:500; color:#dde4f0; }
+    .cc-setting-sub  {
+      display:block; font-size:10px; color:#5d7190; margin-top:1px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
 
-      .cc-reset-btn {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin: 7px 11px 9px;
-        padding: 6px 9px;
-        background: #111827;
-        border: 1px solid #1e2d42;
-        border-radius: 6px;
-        color: #8b9abf;
-        font-size: 11px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        cursor: pointer;
-        transition: background 0.1s, color 0.1s;
-        width: calc(100% - 22px);
-        text-align: left;
-      }
-      .cc-reset-btn:hover { background: #1e2d42; color: #e8f0ff; }
+    /* Toggle */
+    .cc-toggle { display:flex; align-items:center; cursor:pointer; flex-shrink:0; }
+    .cc-toggle input { position:absolute; opacity:0; width:0; height:0; }
+    .cc-track {
+      display:block; width:30px; height:17px; background:#1c2233;
+      border:1px solid #2a3347; border-radius:17px; position:relative;
+      transition:background 0.2s, border-color 0.2s;
+    }
+    .cc-toggle input:checked + .cc-track { background:#f2e840; border-color:#f2e840; }
+    .cc-thumb {
+      position:absolute; left:2px; top:2px; width:11px; height:11px;
+      background:#fff; border-radius:50%; transition:transform 0.2s;
+    }
+    .cc-toggle input:checked + .cc-track .cc-thumb { transform:translateX(13px); }
 
-      .cc-banner-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 11px;
-        border-bottom: 1px solid #1e2d42;
-        font-size: 11px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        color: #8b9abf;
-      }
-      .cc-banner-row.hidden { display: none; }
+    .cc-settings-divider { height:1px; background:#2a3347; margin:4px 0; }
 
-      .cc-status-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        flex-shrink: 0;
-      }
-      .dot-ok   { background: #22c55e; }
-      .dot-warn { background: #f2e840; }
-      .dot-none { background: #374d6a; }
+    /* Blocklist */
+    .cc-bl-search-row { display:flex; align-items:center; gap:6px; padding:0 12px 6px; }
+    .cc-bl-search {
+      flex:1; background:#1c2233; border:1px solid #2a3347; border-radius:5px;
+      color:#dde4f0; font-size:11px; padding:5px 8px; outline:none;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    .cc-bl-search::placeholder { color:#3d5170; }
+    .cc-bl-search:focus { border-color:#5d7190; }
+    .cc-bl-filter {
+      display:flex; align-items:center; gap:4px;
+      padding:0 12px 5px; cursor:pointer; user-select:none;
+    }
+    .cc-bl-filter input[type="checkbox"] {
+      accent-color:#f2e840; width:11px; height:11px;
+      margin:0; cursor:pointer; flex-shrink:0; position:static; opacity:1;
+    }
+    .cc-bl-filter-label { font-size:10px; color:#5d7190; }
+    .cc-bl-list { max-height:160px; overflow-y:auto; }
+    .cc-bl-list::-webkit-scrollbar { width:4px; }
+    .cc-bl-list::-webkit-scrollbar-track { background:transparent; }
+    .cc-bl-list::-webkit-scrollbar-thumb { background:#2a3347; border-radius:4px; }
+    .cc-bl-row {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:5px 12px; gap:8px; transition:background 0.1s;
+    }
+    .cc-bl-row:hover { background:#1c2233; }
+    .cc-bl-row-left { display:flex; align-items:center; gap:5px; min-width:0; flex:1; }
+    .cc-bl-name { font-size:11px; color:#c8d4e8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cc-bl-empty, .cc-bl-loading { font-size:11px; color:#3d5170; text-align:center; padding:12px 0; }
 
-      .cc-tracker-count-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 11px 4px;
-      }
+    /* Reset button */
+    .cc-reset-btn {
+      display:flex; align-items:center; gap:5px;
+      margin:6px 12px 8px; padding:6px 9px;
+      background:#1c2233; border:1px solid #2a3347; border-radius:6px;
+      color:#5d7190; font-size:11px; cursor:pointer; width:calc(100% - 24px);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      transition:background 0.1s, color 0.1s;
+    }
+    .cc-reset-btn:hover { background:#232d3f; color:#dde4f0; }
 
-      .cc-count-left {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-      }
+    /* ── Light mode ── */
+    :host(.cc-light) .cc-pill { background:#f8f9fb; border-color:#d4dae8; box-shadow:0 2px 12px rgba(0,0,0,0.1); }
+    :host(.cc-light) .cc-pill:hover { background:#eef1f7; border-color:#b0b8cc; }
+    :host(.cc-light) .cc-badge { color:#1a2333; }
+    :host(.cc-light) .cc-badge.zero { color:#8b9abf; }
+    :host(.cc-light) .cc-panel { background:#f8f9fb; border-color:#d4dae8; box-shadow:0 6px 24px rgba(0,0,0,0.12); }
+    :host(.cc-light) .cc-header { border-bottom-color:#d4dae8; }
+    :host(.cc-light) .cc-header-title { color:#1a2333; }
+    :host(.cc-light) .cc-gear-btn { color:#8b9abf; }
+    :host(.cc-light) .cc-gear-btn:hover { color:#1a2333; background:#eef1f7; }
+    :host(.cc-light) .cc-gear-btn.active { color:#c8ba00; }
+    :host(.cc-light) .cc-close { color:#8b9abf; }
+    :host(.cc-light) .cc-close:hover { color:#1a2333; background:#eef1f7; }
+    :host(.cc-light) .cc-search-row { border-bottom-color:#d4dae8; }
+    :host(.cc-light) .cc-search-input { color:#1a2333; }
+    :host(.cc-light) .cc-search-input::placeholder { color:#8b9abf; }
+    :host(.cc-light) .cc-search-icon { color:#8b9abf; }
+    :host(.cc-light) .cc-tab::-webkit-scrollbar-thumb { background:#d4dae8; }
+    :host(.cc-light) .cc-banner-chip.chip-none { background:#eef1f7; color:#6b7a99; }
+    :host(.cc-light) .cc-count { color:#c8ba00; }
+    :host(.cc-light) .cc-count-label { color:#6b7a99; }
+    :host(.cc-light) .cc-cat-header { background:#f8f9fb; }
+    :host(.cc-light) .cc-cat-name,
+    :host(.cc-light) .cc-cat-count { color:#8b9abf; }
+    :host(.cc-light) .cc-row:hover { background:#eef1f7; }
+    :host(.cc-light) .cc-row-logo { background:#eef1f7; }
+    :host(.cc-light) .cc-row-logo-fb { background:#eef1f7; color:#6b7a99; }
+    :host(.cc-light) .cc-row-name { color:#1a2333; }
+    :host(.cc-light) .cc-empty { color:#8b9abf; }
+    :host(.cc-light) .cc-settings-label { color:#8b9abf; }
+    :host(.cc-light) .cc-setting-row:hover { background:#eef1f7; }
+    :host(.cc-light) .cc-setting-name { color:#1a2333; }
+    :host(.cc-light) .cc-setting-sub { color:#6b7a99; }
+    :host(.cc-light) .cc-track { background:#eef1f7; border-color:#d4dae8; }
+    :host(.cc-light) .cc-toggle input:checked + .cc-track { background:#c8ba00; border-color:#c8ba00; }
+    :host(.cc-light) .cc-settings-divider { background:#d4dae8; }
+    :host(.cc-light) .cc-bl-search { background:#ffffff; border-color:#d4dae8; color:#1a2333; }
+    :host(.cc-light) .cc-bl-search::placeholder { color:#8b9abf; }
+    :host(.cc-light) .cc-bl-filter-label { color:#6b7a99; }
+    :host(.cc-light) .cc-bl-row:hover { background:#eef1f7; }
+    :host(.cc-light) .cc-bl-name { color:#1a2333; }
+    :host(.cc-light) .cc-bl-empty,
+    :host(.cc-light) .cc-bl-loading { color:#8b9abf; }
+    :host(.cc-light) .cc-reset-btn { background:#ffffff; border-color:#d4dae8; color:#6b7a99; }
+    :host(.cc-light) .cc-reset-btn:hover { background:#eef1f7; color:#1a2333; }
+    :host(.cc-light) .cc-tooltip { background:#ffffff; border-color:#d4dae8; color:#1a2333; box-shadow:0 4px 16px rgba(0,0,0,0.1); }
+    :host(.cc-light) .cc-tooltip::before { border-left-color:#d4dae8; }
+    :host(.cc-light) .cc-tooltip::after { border-left-color:#ffffff; }
+    :host(.cc-light) .cat-advertising { background:#fce7e7; color:#991b1b; }
+    :host(.cc-light) .cat-analytics   { background:#dbeafe; color:#1e40af; }
+    :host(.cc-light) .cat-social      { background:#ede9fe; color:#5b21b6; }
+    :host(.cc-light) .cat-marketing   { background:#dcfce7; color:#15803d; }
+    :host(.cc-light) .cat-support     { background:#f5f5f4; color:#44403c; }
+    :host(.cc-light) .cat-performance { background:#f0fdf4; color:#166534; }
+    :host(.cc-light) .cat-other       { background:#eef1f7; color:#6b7a99; }
 
-      .cc-count-num {
-        font-size: 20px;
-        font-weight: 800;
-        color: #f2e840;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        line-height: 1;
-      }
+  </style>
 
-      .cc-count-label {
-        font-size: 11px;
-        color: #5b7a9e;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
+  <!-- Pill -->
+  <div class="cc-pill" id="cc-pill" title="TrackerTracker">
+    <svg class="cc-icon" viewBox="0 0 128 128" fill="none">
+      <rect width="128" height="128" rx="26" fill="#5e8c6a"/>
+      <path d="M16 46C14 26,34 16,50 32C55 37,60 41,64 41C68 41,73 37,78 32C94 16,114 26,112 46C110 42,96 28,80 40C75 44,70 47,64 47C58 47,53 44,48 40C32 28,18 42,16 46Z" fill="#1c1c1c"/>
+      <ellipse cx="64" cy="70" rx="26" ry="23" fill="#f2e840"/>
+      <ellipse cx="64" cy="64" rx="13" ry="13" fill="#cc2020"/>
+      <circle cx="69" cy="58" r="3.5" fill="white" opacity="0.88"/>
+    </svg>
+    <div class="cc-badge zero" id="cc-badge">0</div>
+  </div>
 
-      .cc-block-all-wrap {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        flex-shrink: 0;
-      }
-      .cc-block-all-wrap input[type="checkbox"] {
-        accent-color: #f2e840;
-        width: 12px;
-        height: 12px;
-        margin: 0;
-        cursor: pointer;
-        flex-shrink: 0;
-        position: static;
-        opacity: 1;
-      }
-      .cc-block-all-label {
-        font-size: 10px;
-        color: #5b7a9e;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        white-space: nowrap;
-        user-select: none;
-      }
+  <!-- Panel -->
+  <div class="cc-panel" id="cc-panel">
 
-      .cc-list {
-        overflow-y: auto;
-        max-height: 240px;
-        padding: 4px 0 6px;
-        display: flex;
-        flex-direction: column;
-        gap: 1px;
-      }
-
-      .cc-list::-webkit-scrollbar { width: 4px; }
-      .cc-list::-webkit-scrollbar-track { background: transparent; }
-      .cc-list::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 4px; }
-
-      .cc-tracker-item {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        padding: 6px 11px;
-        cursor: help;
-        transition: background 0.1s;
-        border-radius: 0;
-        position: relative;
-      }
-      .cc-tracker-item:hover { background: #111827; }
-
-      .cc-tracker-logo {
-        width: 14px;
-        height: 14px;
-        border-radius: 2px;
-        object-fit: contain;
-        flex-shrink: 0;
-        margin-top: 1px;
-        background: #1e2d42;
-      }
-
-      .cc-tracker-logo-fb {
-        width: 14px;
-        height: 14px;
-        border-radius: 2px;
-        background: #1e2d42;
-        color: #8b9abf;
-        font-size: 8px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        margin-top: 1px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      .cc-tracker-text { flex: 1; min-width: 0; }
-
-      .cc-tracker-name-row {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .cc-tracker-name {
-        font-size: 11px;
-        font-weight: 600;
-        color: #e8f0ff;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      .cc-cat {
-        font-size: 9px;
-        font-weight: 700;
-        padding: 1px 4px;
-        border-radius: 3px;
-        text-transform: uppercase;
-        letter-spacing: 0.03em;
-        white-space: nowrap;
-        flex-shrink: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-      .cat-advertising { background:#7f1d1d; color:#fca5a5; }
-      .cat-analytics   { background:#1e3a5f; color:#93c5fd; }
-      .cat-social      { background:#3b0764; color:#d8b4fe; }
-      .cat-marketing   { background:#14532d; color:#86efac; }
-      .cat-support     { background:#1c1917; color:#a8a29e; }
-      .cat-performance { background:#1c2a1c; color:#a3d9a5; }
-      .cat-other       { background:#111827; color:#8b9abf; }
-
-      .cc-tooltip {
-        position: fixed;
-        width: 210px;
-        background: #090e18;
-        border: 1px solid #374d6a;
-        border-radius: 10px;
-        padding: 9px 12px;
-        font-size: 11px;
-        color: #e4e4e7;
-        line-height: 1.5;
-        pointer-events: none;
-        z-index: 2147483647;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.7);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        white-space: normal;
-        opacity: 0;
-        transition: opacity 0.15s;
-      }
-      .cc-tooltip.visible { opacity: 1; }
-
-      /* Right-pointing tail */
-      .cc-tooltip::before {
-        content: "";
-        position: absolute;
-        left: 100%;
-        top: 50%;
-        transform: translateY(-50%);
-        border: 7px solid transparent;
-        border-left-color: #374d6a;
-      }
-      .cc-tooltip::after {
-        content: "";
-        position: absolute;
-        left: 100%;
-        top: 50%;
-        transform: translateY(-50%);
-        margin-left: -1px;
-        border: 6px solid transparent;
-        border-left-color: #090e18;
-      }
-
-      .cc-empty {
-        font-size: 11px;
-        color: #374d6a;
-        text-align: center;
-        padding: 14px 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      /* ── Blocklist section inside settings popout ── */
-      .cc-bl-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 8px 11px 5px;
-      }
-      .cc-bl-title {
-        font-size: 11px;
-        font-weight: 700;
-        color: #8b9abf;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-      .cc-bl-count {
-        font-size: 10px;
-        color: #ef4444;
-        font-weight: 700;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-      .cc-bl-search {
-        display: block;
-        width: calc(100% - 22px);
-        margin: 0 11px 6px;
-        padding: 5px 8px;
-        background: #111827;
-        border: 1px solid #1e2d42;
-        border-radius: 6px;
-        color: #e8f0ff;
-        font-size: 11px;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        outline: none;
-      }
-      .cc-bl-search::placeholder { color: #374d6a; }
-      .cc-bl-search:focus { border-color: #5b7a9e; }
-      .cc-bl-list {
-        max-height: 200px;
-        overflow-y: auto;
-        padding: 0 0 6px;
-      }
-      .cc-bl-list::-webkit-scrollbar { width: 4px; }
-      .cc-bl-list::-webkit-scrollbar-track { background: transparent; }
-      .cc-bl-list::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 4px; }
-      .cc-bl-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 5px 11px;
-        gap: 8px;
-        transition: background 0.1s;
-      }
-      .cc-bl-row:hover { background: #111827; }
-      .cc-bl-row-left {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        min-width: 0;
-        flex: 1;
-      }
-      .cc-bl-name {
-        font-size: 11px;
-        color: #d4d4d8;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .cc-bl-only-wrap {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        padding: 0 11px 5px;
-        cursor: pointer;
-        user-select: none;
-      }
-      .cc-bl-only-label {
-        font-size: 10px;
-        color: #5b7a9e;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-      .cc-bl-only-wrap input[type="checkbox"] {
-        accent-color: #f2e840;
-        width: 11px;
-        height: 11px;
-        margin: 0;
-        cursor: pointer;
-        flex-shrink: 0;
-        position: static;
-        opacity: 1;
-      }
-
-      .cc-bl-empty, .cc-bl-loading {
-        font-size: 11px;
-        color: #374d6a;
-        text-align: center;
-        padding: 12px 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      }
-
-      /* ── Block button ── */
-      .cc-block-btn {
-        background: none;
-        border: none;
-        color: #374d6a;
-        cursor: pointer;
-        font-size: 15px;
-        line-height: 1;
-        padding: 0 2px;
-        flex-shrink: 0;
-        opacity: 0;
-        transition: opacity 0.1s, color 0.1s;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .cc-tracker-item:hover .cc-block-btn { opacity: 1; }
-      .cc-block-btn:hover { color: #ef4444; }
-      .cc-block-btn.cc-blocked-on { opacity: 1; color: #ef4444; }
-
-      .cc-tracker-item.cc-is-blocked .cc-tracker-name { opacity: 0.4; text-decoration: line-through; }
-      .cc-tracker-item.cc-is-blocked .cc-cat          { opacity: 0.4; }
-      .cc-tracker-item.cc-is-blocked .cc-tracker-logo,
-      .cc-tracker-item.cc-is-blocked .cc-tracker-logo-fb { opacity: 0.4; }
-
-      /* ── Light mode overrides ─────────────────────────────────────────── */
-      :host(.cc-light) .cc-pill {
-        background: #ffffff; border-color: #d4d4d8;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      }
-      :host(.cc-light) .cc-pill:hover { background: #e8f0ff; border-color: #8b9abf; }
-      :host(.cc-light) .cc-badge      { color: #111827; }
-      :host(.cc-light) .cc-badge.zero { color: #8b9abf; }
-
-      :host(.cc-light) .cc-panel {
-        background: #ffffff; border-color: #d4d4d8;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-      }
-      :host(.cc-light) .cc-panel-header { border-bottom-color: #d4d4d8; }
-      :host(.cc-light) .cc-panel-title  { color: #0d1117; }
-      :host(.cc-light) .cc-close,
-      :host(.cc-light) .cc-settings-btn { color: #5b7a9e; }
-      :host(.cc-light) .cc-close:hover,
-      :host(.cc-light) .cc-settings-btn:hover { color: #0d1117; background: #e4e4e7; }
-      :host(.cc-light) .cc-settings-btn.active { color: #c8ba00; background: #e4e4e7; }
-
-      :host(.cc-light) .cc-banner-row   { border-bottom-color: #d4d4d8; color: #374d6a; }
-      :host(.cc-light) .cc-count-num    { color: #c8ba00; }
-      :host(.cc-light) .cc-count-label  { color: #5b7a9e; }
-      :host(.cc-light) .cc-block-all-label { color: #5b7a9e; }
-
-      :host(.cc-light) .cc-list::-webkit-scrollbar-thumb { background: #d4d4d8; }
-      :host(.cc-light) .cc-tracker-item:hover { background: #e8f0ff; }
-      :host(.cc-light) .cc-tracker-name { color: #0d1117; }
-      :host(.cc-light) .cc-tracker-logo { background: #e4e4e7; }
-      :host(.cc-light) .cc-tracker-logo-fb { background: #e4e4e7; color: #374d6a; }
-      :host(.cc-light) .cc-empty        { color: #8b9abf; }
-
-      :host(.cc-light) .cat-advertising { background:#fee2e2; color:#991b1b; }
-      :host(.cc-light) .cat-analytics   { background:#dbeafe; color:#1d4ed8; }
-      :host(.cc-light) .cat-social      { background:#f3e8ff; color:#7e22ce; }
-      :host(.cc-light) .cat-marketing   { background:#dcfce7; color:#166534; }
-      :host(.cc-light) .cat-support     { background:#f5f5f4; color:#44403c; }
-      :host(.cc-light) .cat-performance { background:#f0fdf4; color:#166534; }
-      :host(.cc-light) .cat-other       { background:#e8f0ff; color:#374d6a; }
-
-      :host(.cc-light) .cc-tooltip {
-        background: #ffffff; border-color: #d4d4d8; color: #0d1117;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-      }
-      :host(.cc-light) .cc-tooltip::before { border-left-color: #d4d4d8; }
-      :host(.cc-light) .cc-tooltip::after  { border-left-color: #ffffff; }
-
-      :host(.cc-light) .cc-settings-popout {
-        background: #ffffff; border-color: #d4d4d8;
-        box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-      }
-      :host(.cc-light) .cc-settings-popout::before { border-left-color: #d4d4d8; }
-      :host(.cc-light) .cc-settings-popout::after  { border-left-color: #ffffff; }
-      :host(.cc-light) .cc-sp-header     { border-bottom-color: #e4e4e7; color: #5b7a9e; }
-      :host(.cc-light) .cc-setting-label { color: #0d1117; }
-      :host(.cc-light) .cc-setting-sub   { color: #5b7a9e; }
-      :host(.cc-light) .cc-toggle-track  { background: #d4d4d8; }
-      :host(.cc-light) .cc-toggle-wrap input:checked + .cc-toggle-track { background: #c8ba00; }
-      :host(.cc-light) .cc-setting-divider { background: #e4e4e7; }
-      :host(.cc-light) .cc-reset-btn     { background: #e8f0ff; border-color: #d4d4d8; color: #374d6a; }
-      :host(.cc-light) .cc-reset-btn:hover { background: #e4e4e7; color: #0d1117; }
-
-      :host(.cc-light) .cc-block-btn { color: #8b9abf; }
-      :host(.cc-light) .cc-block-btn:hover { color: #ef4444; }
-      :host(.cc-light) .cc-block-btn.cc-blocked-on { color: #ef4444; }
-
-      :host(.cc-light) .cc-bl-title  { color: #5b7a9e; }
-      :host(.cc-light) .cc-bl-search { background: #e8f0ff; border-color: #d4d4d8; color: #0d1117; }
-      :host(.cc-light) .cc-bl-search::placeholder { color: #8b9abf; }
-      :host(.cc-light) .cc-bl-search:focus { border-color: #8b9abf; }
-      :host(.cc-light) .cc-bl-row:hover { background: #e8f0ff; }
-      :host(.cc-light) .cc-bl-name   { color: #111827; }
-      :host(.cc-light) .cc-bl-list::-webkit-scrollbar-thumb { background: #d4d4d8; }
-      :host(.cc-light) .cc-bl-only-label { color: #5b7a9e; }
-      :host(.cc-light) .cc-bl-empty,
-      :host(.cc-light) .cc-bl-loading { color: #8b9abf; }
-
-    </style>
-
-    <!-- Pill button -->
-    <div class="cc-pill" id="cc-pill" title="TrackerTracker — click to see trackers">
-      <svg class="cc-icon" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="128" height="128" rx="26" fill="#5e8c6a"/>
-        <path d="M 16 54 C 14 34,34 24,50 40 C 55 45,60 49,64 49 C 68 49,73 45,78 40 C 94 24,114 34,112 54 C 110 50,96 36,80 48 C 75 52,70 55,64 55 C 58 55,53 52,48 48 C 32 36,18 50,16 54 Z" fill="#1c1c1c"/>
-        <ellipse cx="64" cy="88" rx="29" ry="33" fill="#f2e840"/>
-        <ellipse cx="64" cy="78" rx="11" ry="13" fill="#cc2020"/>
-        <circle cx="69" cy="72" r="4" fill="white" opacity="0.88"/>
-      </svg>
-      <div class="cc-badge zero" id="cc-badge">0</div>
-    </div>
-
-    <!-- Expanded panel -->
-    <div class="cc-panel" id="cc-panel">
-      <div class="cc-panel-header">
-        <div class="cc-panel-title-row">
-          <svg class="cc-panel-icon" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="128" height="128" rx="24" fill="#f2e840"/>
-            <circle cx="64" cy="64" r="44" fill="#92400e"/>
-            <circle cx="64" cy="64" r="38" fill="#b45309"/>
-            <ellipse cx="50" cy="52" rx="7" ry="6" fill="#1c0a00" transform="rotate(-15 50 52)"/>
-            <ellipse cx="76" cy="48" rx="6" ry="5" fill="#1c0a00" transform="rotate(10 76 48)"/>
-            <ellipse cx="58" cy="74" rx="6" ry="5" fill="#1c0a00" transform="rotate(-8 58 74)"/>
-            <ellipse cx="80" cy="70" rx="7" ry="6" fill="#1c0a00" transform="rotate(12 80 70)"/>
-            <ellipse cx="46" cy="72" rx="5" ry="4" fill="#1c0a00" transform="rotate(-5 46 72)"/>
-            <line x1="30" y1="34" x2="98" y2="102" stroke="#fef3c7" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+    <div class="cc-header" id="cc-header">
+      <div class="cc-header-left">
+        <svg class="cc-header-icon" viewBox="0 0 128 128" fill="none">
+          <rect width="128" height="128" rx="26" fill="#5e8c6a"/>
+          <path d="M16 46C14 26,34 16,50 32C55 37,60 41,64 41C68 41,73 37,78 32C94 16,114 26,112 46C110 42,96 28,80 40C75 44,70 47,64 47C58 47,53 44,48 40C32 28,18 42,16 46Z" fill="#1c1c1c"/>
+          <ellipse cx="64" cy="70" rx="26" ry="23" fill="#f2e840"/>
+          <ellipse cx="64" cy="64" rx="13" ry="13" fill="#cc2020"/>
+          <circle cx="69" cy="58" r="3.5" fill="white" opacity="0.88"/>
+        </svg>
+        <span class="cc-header-title">TrackerTracker</span>
+      </div>
+      <div class="cc-header-right">
+        <button class="cc-gear-btn" id="cc-gear-btn" title="Settings">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M4.1 4.1l1.4 1.4M14.5 14.5l1.4 1.4M4.1 15.9l1.4-1.4M14.5 5.5l1.4-1.4"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
-          <span class="cc-panel-title">TrackerTracker</span>
-        </div>
-        <div class="cc-header-actions">
-          <button class="cc-settings-btn" id="cc-settings-btn" title="Settings">⚙</button>
-          <button class="cc-close" id="cc-close" title="Close">✕</button>
+        </button>
+        <button class="cc-close" id="cc-close" title="Close">✕</button>
+      </div>
+    </div>
+
+    <div class="cc-search-row" id="cc-search-row">
+      <svg class="cc-search-icon" viewBox="0 0 16 16" fill="none">
+        <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input class="cc-search-input" id="cc-search" placeholder="Filter trackers…" type="text" />
+    </div>
+
+    <!-- This Page tab -->
+    <div class="cc-tab" id="cc-tab-page">
+      <div id="cc-banner-chip" class="cc-banner-chip hidden"></div>
+      <div class="cc-summary">
+        <span class="cc-count" id="cc-count">0</span>
+        <span class="cc-count-label">trackers on this page</span>
+      </div>
+      <div id="cc-list"></div>
+    </div>
+
+    <!-- Settings tab -->
+    <div class="cc-tab hidden" id="cc-tab-settings">
+
+      <div class="cc-settings-group">
+        <div class="cc-settings-label">This site</div>
+        <div class="cc-setting-row">
+          <div class="cc-setting-text">
+            <span class="cc-setting-name">Enabled</span>
+            <span class="cc-setting-sub" id="cc-site-hostname"></span>
+          </div>
+          <label class="cc-toggle">
+            <input type="checkbox" id="cc-site-toggle" checked />
+            <span class="cc-track"><span class="cc-thumb"></span></span>
+          </label>
         </div>
       </div>
 
-      <div class="cc-banner-row hidden" id="cc-banner-row">
-        <span class="cc-status-dot" id="cc-status-dot"></span>
-        <span id="cc-banner-text"></span>
+      <div class="cc-settings-divider"></div>
+
+      <div class="cc-settings-group">
+        <div class="cc-settings-label">Blocking</div>
+        <div class="cc-setting-row">
+          <div class="cc-setting-text">
+            <span class="cc-setting-name">Block all trackers</span>
+            <span class="cc-setting-sub">Preemptively block all known trackers</span>
+          </div>
+          <label class="cc-toggle">
+            <input type="checkbox" id="cc-block-all-global" />
+            <span class="cc-track"><span class="cc-thumb"></span></span>
+          </label>
+        </div>
+        <div class="cc-setting-row">
+          <div class="cc-setting-text">
+            <span class="cc-setting-name">Block by default</span>
+            <span class="cc-setting-sub">Always on across sessions</span>
+          </div>
+          <label class="cc-toggle">
+            <input type="checkbox" id="cc-block-all-default" />
+            <span class="cc-track"><span class="cc-thumb"></span></span>
+          </label>
+        </div>
       </div>
 
-      <div class="cc-tracker-count-row">
-        <div class="cc-count-left">
-          <span class="cc-count-num" id="cc-count-num">0</span>
-          <span class="cc-count-label">trackers on this page</span>
+      <div class="cc-settings-divider"></div>
+
+      <div class="cc-settings-group">
+        <div class="cc-settings-label">Appearance</div>
+        <div class="cc-setting-row">
+          <div class="cc-setting-text">
+            <span class="cc-setting-name">Light mode</span>
+            <span class="cc-setting-sub">Switch to light theme</span>
+          </div>
+          <label class="cc-toggle">
+            <input type="checkbox" id="cc-light-mode" />
+            <span class="cc-track"><span class="cc-thumb"></span></span>
+          </label>
         </div>
-        <label class="cc-block-all-wrap" id="cc-block-all-wrap" title="Block all detected trackers">
-          <span class="cc-block-all-label">Block all</span>
-          <input type="checkbox" id="cc-block-all" />
+      </div>
+
+      <div class="cc-settings-divider"></div>
+
+      <div class="cc-settings-group">
+        <div class="cc-settings-label">Tracker blocklist</div>
+        <div class="cc-bl-search-row">
+          <input class="cc-bl-search" id="cc-bl-search" placeholder="Filter 3435 trackers…" type="text" />
+        </div>
+        <label class="cc-bl-filter">
+          <input type="checkbox" id="cc-bl-blocked-only" checked />
+          <span class="cc-bl-filter-label">Blocked only</span>
         </label>
+        <div class="cc-bl-list" id="cc-bl-list">
+          <div class="cc-bl-loading">Loading…</div>
+        </div>
       </div>
 
-      <div class="cc-list" id="cc-list">
-        <div class="cc-empty">No trackers detected yet.</div>
-      </div>
+      <div class="cc-settings-divider"></div>
+      <button class="cc-reset-btn" id="cc-reset-pos">↖ Reset overlay position</button>
 
     </div>
+
+  </div>
   `;
 
   document.documentElement.appendChild(host);
 
-  // ── Element refs ─────────────────────────────────────────────────────────
+  // ── Element refs ───────────────────────────────────────────────────────────
+  const pill        = shadow.getElementById("cc-pill");
+  const panel       = shadow.getElementById("cc-panel");
+  const badge       = shadow.getElementById("cc-badge");
+  const closeBtn    = shadow.getElementById("cc-close");
+  const gearBtn     = shadow.getElementById("cc-gear-btn");
+  const panelHeader = shadow.getElementById("cc-header");
+  const searchInput = shadow.getElementById("cc-search");
+  const searchRow   = shadow.getElementById("cc-search-row");
+  const bannerChip  = shadow.getElementById("cc-banner-chip");
+  const countEl     = shadow.getElementById("cc-count");
+  const list        = shadow.getElementById("cc-list");
 
-  const pill    = shadow.getElementById("cc-pill");
-  const panel   = shadow.getElementById("cc-panel");
-  const badge   = shadow.getElementById("cc-badge");
-  const closeBtn = shadow.getElementById("cc-close");
-  const bannerRow = shadow.getElementById("cc-banner-row");
-  const bannerText = shadow.getElementById("cc-banner-text");
-  const statusDot = shadow.getElementById("cc-status-dot");
-  const countNum     = shadow.getElementById("cc-count-num");
-  const blockAllWrap = shadow.getElementById("cc-block-all-wrap");
-  const blockAllChk  = shadow.getElementById("cc-block-all");
-  const list         = shadow.getElementById("cc-list");
-  const settingsBtn = shadow.getElementById("cc-settings-btn");
+  const tabPage     = shadow.getElementById("cc-tab-page");
+  const tabSettings = shadow.getElementById("cc-tab-settings");
 
-  // ── Build the floating settings popout at shadow-root level ──────────────
-  const settingsPopout = document.createElement("div");
-  settingsPopout.className = "cc-settings-popout";
-  settingsPopout.innerHTML = `
-    <div class="cc-sp-header">Settings</div>
-    <div class="cc-setting-row">
-      <div class="cc-setting-text">
-        <span class="cc-setting-label">Enabled on this site</span>
-        <span class="cc-setting-sub" id="cc-site-hostname"></span>
-      </div>
-      <label class="cc-toggle-wrap">
-        <input type="checkbox" id="cc-site-toggle" checked />
-        <span class="cc-toggle-track"><span class="cc-toggle-thumb"></span></span>
-      </label>
-    </div>
-    <div class="cc-setting-divider"></div>
-    <div class="cc-setting-row">
-      <div class="cc-setting-text">
-        <span class="cc-setting-label">Light mode</span>
-      </div>
-      <label class="cc-toggle-wrap">
-        <input type="checkbox" id="cc-theme-toggle" />
-        <span class="cc-toggle-track"><span class="cc-toggle-thumb"></span></span>
-      </label>
-    </div>
-    <div class="cc-setting-divider"></div>
-    <button class="cc-reset-btn" id="cc-reset-pos">↖ Reset position to default</button>
-    <div class="cc-setting-divider"></div>
-    <div class="cc-bl-header">
-      <span class="cc-bl-title">Tracker blocklist</span>
-      <span class="cc-bl-count" id="cc-bl-count"></span>
-    </div>
-    <label class="cc-bl-only-wrap">
-      <input type="checkbox" id="cc-bl-blocked-only" checked />
-      <span class="cc-bl-only-label">Blocked only</span>
-    </label>
-    <input type="text" class="cc-bl-search" id="cc-bl-search" placeholder="Filter trackers…" />
-    <div class="cc-bl-list" id="cc-bl-list">
-      <div class="cc-bl-loading">Loading…</div>
-    </div>
-  `;
-  shadow.appendChild(settingsPopout);
+  const siteToggle      = shadow.getElementById("cc-site-toggle");
+  const siteHostname    = shadow.getElementById("cc-site-hostname");
+  const blockAllGlobal  = shadow.getElementById("cc-block-all-global");
+  const blockAllDefault = shadow.getElementById("cc-block-all-default");
+  const lightModeToggle = shadow.getElementById("cc-light-mode");
+  const resetPosBtn     = shadow.getElementById("cc-reset-pos");
+  const blSearch        = shadow.getElementById("cc-bl-search");
+  const blBlockedOnly   = shadow.getElementById("cc-bl-blocked-only");
+  const blList          = shadow.getElementById("cc-bl-list");
 
-  const siteToggle   = settingsPopout.querySelector("#cc-site-toggle");
-  const siteHostname = settingsPopout.querySelector("#cc-site-hostname");
-  const themeToggle  = settingsPopout.querySelector("#cc-theme-toggle");
-  const resetPosBtn  = settingsPopout.querySelector("#cc-reset-pos");
-  const blSearch      = settingsPopout.querySelector("#cc-bl-search");
-  const blBlockedOnly = settingsPopout.querySelector("#cc-bl-blocked-only");
+  // Tooltip (lives at shadow root level to avoid overflow clipping)
+  const tooltip = document.createElement("div");
+  tooltip.className = "cc-tooltip";
+  shadow.appendChild(tooltip);
 
-  let allTrackers = null; // cached full tracker list for blocklist
-
-  blSearch.addEventListener("input", () => {
-    if (!allTrackers) return;
-    renderBlocklist(allTrackers, blSearch.value, blBlockedOnly.checked);
-  });
-
-  blBlockedOnly.addEventListener("change", () => {
-    if (!allTrackers) return;
-    renderBlocklist(allTrackers, blSearch.value, blBlockedOnly.checked);
-  });
-
-  // ── Theme ─────────────────────────────────────────────────────────────────
-
-  function applyTheme(light) {
-    if (light) host.classList.add("cc-light");
-    else        host.classList.remove("cc-light");
-    themeToggle.checked = light;
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    activeTab = tab;
+    tabPage.classList.toggle("hidden", tab !== "page");
+    tabSettings.classList.toggle("hidden", tab !== "settings");
+    searchRow.style.display = tab === "page" ? "" : "none";
+    gearBtn.classList.toggle("active", tab === "settings");
+    if (tab === "settings") loadBlocklist();
   }
 
-  themeToggle.addEventListener("change", () => {
-    const light = themeToggle.checked;
-    applyTheme(light);
-    chrome.storage.local.set({ overlayTheme: light ? "light" : "dark" });
+  gearBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    switchTab(activeTab === "settings" ? "page" : "settings");
   });
 
-  // Block-all toggle — blocks/unblocks every tracker currently on the page
-  blockAllChk.addEventListener("change", () => {
-    const blockAll = blockAllChk.checked;
-    const targets = blockAll
-      ? trackers.filter(t => !blockedSet.has(t.name))
-      : trackers.filter(t =>  blockedSet.has(t.name));
-
-    let pending = targets.length;
-    if (pending === 0) return;
-
-    for (const t of targets) {
-      chrome.runtime.sendMessage(
-        { type: blockAll ? "BLOCK_TRACKER" : "UNBLOCK_TRACKER", name: t.name },
-        () => {
-          if (chrome.runtime.lastError) return;
-          if (blockAll) blockedSet.add(t.name);
-          else          blockedSet.delete(t.name);
-          pending--;
-          if (pending === 0) renderTrackers();
-        }
-      );
-    }
-  });
-
-  // Load saved theme on init — dark is the default; only switch if user explicitly saved "light"
-  chrome.storage.local.get("overlayTheme", (data) => {
-    applyTheme(data.overlayTheme === "light");
-  });
-
-  // Shared tooltip — lives at shadow root level so it's not clipped by list overflow
-  const sharedTooltip = document.createElement("div");
-  sharedTooltip.className = "cc-tooltip";
-  shadow.appendChild(sharedTooltip);
-
-  // ── Category labels ───────────────────────────────────────────────────────
-
-  const CAT_LABELS = {
-    advertising: "Ads",
-    analytics: "Analytics",
-    social: "Social",
-    marketing: "Marketing",
-    support: "Support",
-    performance: "Perf",
-  };
-
-  const CAT_ORDER = ["advertising", "analytics", "social", "marketing", "support", "performance"];
-
-  // ── Render functions ──────────────────────────────────────────────────────
-
+  // ── Render: banner chip ────────────────────────────────────────────────────
   function renderBanner() {
-    if (!bannerStatus.found) {
-      bannerRow.classList.add("hidden");
-      return;
-    }
-    bannerRow.classList.remove("hidden");
-    if (bannerStatus.declined) {
-      statusDot.className = "cc-status-dot dot-ok";
-      bannerText.textContent = "Cookie banner declined";
+    bannerChip.className = "cc-banner-chip";
+    if (bannerStatus.found && bannerStatus.declined) {
+      bannerChip.classList.add("chip-ok");
+      bannerChip.textContent = "✓  Cookie banner declined";
+    } else if (bannerStatus.found) {
+      bannerChip.classList.add("chip-warn");
+      bannerChip.textContent = "!  Banner found - couldn't auto-decline";
     } else {
-      statusDot.className = "cc-status-dot dot-warn";
-      bannerText.textContent = "Banner found — couldn't auto-decline";
+      bannerChip.classList.add("chip-none");
+      bannerChip.textContent = "–  No cookie banner detected";
     }
   }
 
-  function makeLogo(tracker) {
-    if (tracker.logo) {
+  // ── Render: tracker list ───────────────────────────────────────────────────
+  function makeLogo(t) {
+    if (t.logo) {
       const img = document.createElement("img");
-      img.src = tracker.logo;
-      img.className = "cc-tracker-logo";
-      img.alt = "";
-      img.onerror = () => img.replaceWith(makeFallback(tracker));
+      img.src = t.logo; img.className = "cc-row-logo"; img.alt = "";
+      img.onerror = () => img.replaceWith(makeFallback(t));
       return img;
     }
-    return makeFallback(tracker);
+    return makeFallback(t);
   }
 
-  function makeFallback(tracker) {
+  function makeFallback(t) {
     const el = document.createElement("div");
-    el.className = "cc-tracker-logo-fb";
-    el.textContent = (tracker.company || tracker.name).charAt(0).toUpperCase();
+    el.className = "cc-row-logo-fb";
+    el.textContent = (t.company || t.name)[0].toUpperCase();
     return el;
   }
 
   function renderTrackers() {
-    countNum.textContent = trackers.length;
-    badge.textContent = trackers.length;
-    badge.className = "cc-badge" + (trackers.length === 0 ? " zero" : "");
-
-    // Sync block-all toggle: visible only when there are trackers; checked when all are blocked
-    if (trackers.length === 0) {
-      blockAllWrap.style.visibility = "hidden";
-    } else {
-      blockAllWrap.style.visibility = "";
-      blockAllChk.checked = trackers.every(t => blockedSet.has(t.name));
-    }
+    countEl.textContent = trackers.length;
+    badge.textContent   = trackers.length;
+    badge.className     = "cc-badge" + (trackers.length === 0 ? " zero" : "");
 
     while (list.firstChild) list.removeChild(list.firstChild);
 
-    if (trackers.length === 0) {
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = q
+      ? trackers.filter(t => t.name.toLowerCase().includes(q) || (t.company||"").toLowerCase().includes(q))
+      : trackers;
+
+    if (filtered.length === 0) {
       const empty = document.createElement("div");
       empty.className = "cc-empty";
-      empty.textContent = "No trackers detected yet.";
+      empty.textContent = q ? `No trackers matching "${searchQuery}".` : "No trackers detected yet.";
       list.appendChild(empty);
       return;
     }
 
-    const sorted = [...trackers].sort((a, b) => {
-      const ai = CAT_ORDER.indexOf(a.category) === -1 ? 99 : CAT_ORDER.indexOf(a.category);
-      const bi = CAT_ORDER.indexOf(b.category) === -1 ? 99 : CAT_ORDER.indexOf(b.category);
-      return ai - bi || a.name.localeCompare(b.name);
-    });
+    const groups = {};
+    for (const t of filtered) {
+      const cat = (t.category || "other").toLowerCase();
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(t);
+    }
 
-    for (const t of sorted) {
-      const isBlocked = blockedSet.has(t.name);
-      const item = document.createElement("div");
-      item.className = "cc-tracker-item" + (isBlocked ? " cc-is-blocked" : "");
+    for (const cat of CAT_ORDER) {
+      const items = groups[cat];
+      if (!items || items.length === 0) continue;
 
-      const logo = makeLogo(t);
+      const section = document.createElement("div");
 
-      const text = document.createElement("div");
-      text.className = "cc-tracker-text";
+      const catHeader = document.createElement("div");
+      catHeader.className = "cc-cat-header";
+      catHeader.innerHTML = `<span class="cc-cat-name">${CAT_LABELS[cat] || cat}</span><span class="cc-cat-count">${items.length}</span>`;
+      section.appendChild(catHeader);
 
-      const nameRow = document.createElement("div");
-      nameRow.className = "cc-tracker-name-row";
+      for (const t of items.sort((a,b) => a.name.localeCompare(b.name))) {
+        const isBlocked = blockedSet.has(t.name);
+        const row = document.createElement("div");
+        row.className = "cc-row" + (isBlocked ? " is-blocked" : "");
 
-      const name = document.createElement("span");
-      name.className = "cc-tracker-name";
-      name.textContent = t.name;
+        const logo = makeLogo(t);
 
-      const catKey = (t.category || "other").toLowerCase();
-      const cat = document.createElement("span");
-      cat.className = `cc-cat cat-${catKey}`;
-      cat.textContent = CAT_LABELS[catKey] || t.category;
+        const name = document.createElement("span");
+        name.className = "cc-row-name";
+        name.textContent = t.name;
 
-      nameRow.appendChild(name);
-      nameRow.appendChild(cat);
+        const catKey = (t.category || "other").toLowerCase();
+        const catBadge = document.createElement("span");
+        catBadge.className = `cc-row-cat cat-${catKey}`;
+        catBadge.textContent = CAT_BADGE[catKey] || catKey;
 
-      text.appendChild(nameRow);
+        // Description on hover via tooltip
+        if (t.description) {
+          row.addEventListener("mouseenter", () => {
+            const rect = row.getBoundingClientRect();
+            tooltip.textContent = t.description;
+            tooltip.style.top       = (rect.top + rect.height / 2) + "px";
+            tooltip.style.right     = (window.innerWidth - rect.left + 8) + "px";
+            tooltip.style.transform = "translateY(-50%)";
+            tooltip.classList.add("visible");
+          });
+          row.addEventListener("mouseleave", () => tooltip.classList.remove("visible"));
+        }
 
-      if (t.description) {
-        item.addEventListener("mouseenter", () => {
-          const rect = item.getBoundingClientRect();
-          sharedTooltip.textContent = t.description;
-          sharedTooltip.style.top = (rect.top + rect.height / 2) + "px";
-          sharedTooltip.style.right = (window.innerWidth - rect.left + 10) + "px";
-          sharedTooltip.style.transform = "translateY(-50%)";
-          sharedTooltip.classList.add("visible");
+        // Block button
+        const blockBtn = document.createElement("button");
+        blockBtn.className = "cc-block-btn" + (isBlocked ? " blocked" : "");
+        blockBtn.textContent = "⊘";
+        blockBtn.title = isBlocked ? "Unblock" : "Block";
+        blockBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          tooltip.classList.remove("visible");
+          const nowBlocked = blockedSet.has(t.name);
+          chrome.runtime.sendMessage(
+            { type: nowBlocked ? "UNBLOCK_TRACKER" : "BLOCK_TRACKER", name: t.name },
+            () => {
+              if (chrome.runtime.lastError) return;
+              if (nowBlocked) blockedSet.delete(t.name);
+              else            blockedSet.add(t.name);
+              row.classList.toggle("is-blocked", blockedSet.has(t.name));
+              blockBtn.classList.toggle("blocked", blockedSet.has(t.name));
+              blockBtn.title = blockedSet.has(t.name) ? "Unblock" : "Block";
+            }
+          );
         });
-        item.addEventListener("mouseleave", () => {
-          sharedTooltip.classList.remove("visible");
-        });
+
+        row.appendChild(logo);
+        row.appendChild(name);
+        row.appendChild(catBadge);
+        row.appendChild(blockBtn);
+        section.appendChild(row);
       }
 
-      // Block button
-      const blockBtn = document.createElement("button");
-      blockBtn.className = "cc-block-btn" + (isBlocked ? " cc-blocked-on" : "");
-      blockBtn.textContent = "⊘";
-      blockBtn.title = isBlocked ? "Unblock this tracker" : "Block this tracker";
-      blockBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        sharedTooltip.classList.remove("visible");
-        const nowBlocked = blockedSet.has(t.name);
-        chrome.runtime.sendMessage(
-          { type: nowBlocked ? "UNBLOCK_TRACKER" : "BLOCK_TRACKER", name: t.name },
-          () => {
-            if (chrome.runtime.lastError) return;
-            if (nowBlocked) blockedSet.delete(t.name);
-            else            blockedSet.add(t.name);
-            item.classList.toggle("cc-is-blocked", blockedSet.has(t.name));
-            blockBtn.classList.toggle("cc-blocked-on", blockedSet.has(t.name));
-            blockBtn.title = blockedSet.has(t.name) ? "Unblock this tracker" : "Block this tracker";
-          }
-        );
-      });
-
-      item.appendChild(logo);
-      item.appendChild(text);
-      item.appendChild(blockBtn);
-      list.appendChild(item);
+      list.appendChild(section);
     }
   }
 
-  // ── Toggle panel ──────────────────────────────────────────────────────────
+  // ── Search ─────────────────────────────────────────────────────────────────
+  searchInput.addEventListener("input", (e) => {
+    searchQuery = e.target.value;
+    renderTrackers();
+  });
 
+  // ── Panel open/close ───────────────────────────────────────────────────────
   function openPanel() {
     expanded = true;
     panel.classList.add("open");
     renderBanner();
     renderTrackers();
+    switchTab(activeTab);
   }
 
   function closePanel() {
     expanded = false;
     panel.classList.remove("open");
-    // close settings popout if open
-    settingsOpen = false;
-    if (settingsBtn)    settingsBtn.classList.remove("active");
-    if (settingsPopout) settingsPopout.classList.remove("visible");
+    tooltip.classList.remove("visible");
   }
 
-  // ── Drag logic ────────────────────────────────────────────────────────────
-
-  let dragging = false;
-  let didDrag  = false;
-  let dragStartX = 0;
-  let dragStartY = 0;
-  let dragOffsetX = 0;
-  let dragOffsetY = 0;
-
-  const DRAG_THRESHOLD = 4; // px of movement before it's considered a drag
+  // ── Drag logic ─────────────────────────────────────────────────────────────
+  let dragging = false, didDrag = false;
+  let dragStartX = 0, dragStartY = 0, dragOffsetX = 0, dragOffsetY = 0;
+  const DRAG_THRESHOLD = 4;
 
   function startDrag(e) {
     if (e.button !== 0) return;
-    // Let clicks on buttons/inputs through — don't hijack them as drags
-    if (e.target.closest("button, input, label, a, select")) return;
-    e.preventDefault();
-    e.stopPropagation();
+    if (e.target.closest("button,input,label,a,select")) return;
+    e.preventDefault(); e.stopPropagation();
 
     const rect = host.getBoundingClientRect();
-    dragStartX  = e.clientX;
-    dragStartY  = e.clientY;
-    dragOffsetX = e.clientX - rect.left;
-    dragOffsetY = e.clientY - rect.top;
-    dragging    = true;
-    didDrag     = false;
+    dragStartX  = e.clientX; dragStartY  = e.clientY;
+    dragOffsetX = e.clientX - rect.left; dragOffsetY = e.clientY - rect.top;
+    dragging = true; didDrag = false;
 
-    // Convert right-based to left-based so we can move freely
-    host.style.right = "";
-    host.style.left  = rect.left + "px";
-    host.style.top   = rect.top  + "px";
-
+    host.style.right = ""; host.style.left = rect.left + "px"; host.style.top = rect.top + "px";
     pill.classList.add("dragging");
     document.addEventListener("mousemove", onDragMove);
     document.addEventListener("mouseup",   onDragEnd);
@@ -1071,83 +730,109 @@
 
   function onDragMove(e) {
     if (!dragging) return;
-
     if (!didDrag) {
-      const dx = Math.abs(e.clientX - dragStartX);
-      const dy = Math.abs(e.clientY - dragStartY);
+      const dx = Math.abs(e.clientX - dragStartX), dy = Math.abs(e.clientY - dragStartY);
       if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) didDrag = true;
     }
     if (!didDrag) return;
-
-    sharedTooltip.classList.remove("visible"); // hide tooltip while dragging
-
-    const x = e.clientX - dragOffsetX;
-    const y = e.clientY - dragOffsetY;
-
-    const maxX = window.innerWidth  - host.offsetWidth;
-    const maxY = window.innerHeight - host.offsetHeight;
-
-    host.style.left = Math.max(0, Math.min(x, maxX)) + "px";
-    host.style.top  = Math.max(0, Math.min(y, maxY)) + "px";
+    tooltip.classList.remove("visible");
+    const x = Math.max(0, Math.min(e.clientX - dragOffsetX, window.innerWidth  - host.offsetWidth));
+    const y = Math.max(0, Math.min(e.clientY - dragOffsetY, window.innerHeight - host.offsetHeight));
+    host.style.left = x + "px"; host.style.top = y + "px";
   }
 
-  function onDragEnd(e) {
+  function onDragEnd() {
     if (!dragging) return;
     dragging = false;
     pill.classList.remove("dragging");
-
     document.removeEventListener("mousemove", onDragMove);
     document.removeEventListener("mouseup",   onDragEnd);
-
     if (didDrag) {
-      // Persist position so it survives page navigations
       const rect = host.getBoundingClientRect();
-      chrome.storage.local.set({
-        overlayPos: { left: rect.left, top: rect.top }
-      });
+      chrome.storage.local.set({ overlayPos: { left: rect.left, top: rect.top } });
     } else {
-      // No meaningful movement — treat as a click
-      if (expanded) closePanel();
-      else openPanel();
+      if (expanded) closePanel(); else openPanel();
     }
   }
 
-  // Attach drag to pill and panel header (both act as drag handles)
   pill.addEventListener("mousedown", startDrag);
-  shadow.getElementById("cc-panel-header") && shadow.getElementById("cc-panel-header").addEventListener("mousedown", startDrag);
+  panelHeader.addEventListener("mousedown", startDrag);
 
-  // Give the panel header an id so we can grab it
-  const panelHeader = panel.querySelector(".cc-panel-header");
-  if (panelHeader) {
-    panelHeader.style.cursor = "grab";
-    panelHeader.addEventListener("mousedown", startDrag);
-  }
+  closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closePanel(); });
 
-  closeBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    closePanel();
+  document.addEventListener("click", (e) => {
+    if (didDrag) return;
+    if (e.target !== host) closePanel();
   });
 
-  // ── Settings ──────────────────────────────────────────────────────────────
+  // ── Settings wiring ────────────────────────────────────────────────────────
+  siteHostname.textContent = location.hostname;
 
-  let settingsOpen = false;
+  chrome.runtime.sendMessage({ type:"IS_SITE_DISABLED", host:location.hostname }, (resp) => {
+    siteToggle.checked = !(resp && resp.disabled);
+  });
 
-  function renderBlocklist(list, filter, blockedOnly) {
-    const blList  = settingsPopout.querySelector("#cc-bl-list");
-    const blCount = settingsPopout.querySelector("#cc-bl-count");
-
-    const q = filter.trim().toLowerCase();
-    let filtered = blockedOnly ? list.filter(t => blockedSet.has(t.name)) : list;
-    if (q) filtered = filtered.filter(t =>
-      t.name.toLowerCase().includes(q) || (t.category || "").toLowerCase().includes(q)
+  siteToggle.addEventListener("change", () => {
+    chrome.runtime.sendMessage(
+      { type:"SET_SITE_ENABLED", host:location.hostname, enabled:siteToggle.checked },
+      () => { if (!siteToggle.checked) { closePanel(); host.style.display = "none"; } }
     );
+  });
 
-    const totalBlocked = list.filter(t => blockedSet.has(t.name)).length;
-    blCount.textContent = totalBlocked > 0 ? `${totalBlocked} blocked` : "";
+  chrome.runtime.sendMessage({ type:"GET_BLOCK_ALL" }, (resp) => {
+    if (!resp) return;
+    blockAllGlobal.checked  = resp.enabled;
+    blockAllDefault.checked = resp.default;
+  });
+
+  blockAllGlobal.addEventListener("change", () => {
+    chrome.runtime.sendMessage({ type:"SET_BLOCK_ALL", enabled:blockAllGlobal.checked }, () => {});
+    if (!blockAllGlobal.checked && blockAllDefault.checked) {
+      blockAllDefault.checked = false;
+      chrome.runtime.sendMessage({ type:"SET_BLOCK_ALL_DEFAULT", enabled:false }, () => {});
+    }
+  });
+
+  blockAllDefault.addEventListener("change", () => {
+    chrome.runtime.sendMessage({ type:"SET_BLOCK_ALL_DEFAULT", enabled:blockAllDefault.checked }, () => {});
+    if (blockAllDefault.checked && !blockAllGlobal.checked) {
+      blockAllGlobal.checked = true;
+      chrome.runtime.sendMessage({ type:"SET_BLOCK_ALL", enabled:true }, () => {});
+    }
+  });
+
+  // ── Light mode ─────────────────────────────────────────────────────────────
+  chrome.storage.local.get("overlayTheme", ({ overlayTheme }) => {
+    if (overlayTheme === "light") {
+      host.classList.add("cc-light");
+      lightModeToggle.checked = true;
+      lightMode = true;
+    }
+  });
+
+  lightModeToggle.addEventListener("change", () => {
+    lightMode = lightModeToggle.checked;
+    host.classList.toggle("cc-light", lightMode);
+    chrome.storage.local.set({ overlayTheme: lightMode ? "light" : "dark" });
+  });
+
+  resetPosBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    host.style.left = ""; host.style.top = "20px"; host.style.right = "20px";
+    chrome.storage.local.remove("overlayPos");
+  });
+
+  // ── Blocklist ──────────────────────────────────────────────────────────────
+  function renderBlocklist() {
+    const q = blSearch.value.trim().toLowerCase();
+    const blockedOnly = blBlockedOnly.checked;
+    let items = allTrackers || [];
+    if (blockedOnly) items = items.filter(t => blockedSet.has(t.name));
+    if (q) items = items.filter(t => t.name.toLowerCase().includes(q) || (t.category||"").toLowerCase().includes(q));
 
     while (blList.firstChild) blList.removeChild(blList.firstChild);
 
-    if (filtered.length === 0) {
+    if (items.length === 0) {
       const empty = document.createElement("div");
       empty.className = "cc-bl-empty";
       empty.textContent = "No trackers match.";
@@ -1155,7 +840,7 @@
       return;
     }
 
-    for (const t of filtered) {
+    for (const t of items) {
       const row = document.createElement("div");
       row.className = "cc-bl-row";
 
@@ -1168,143 +853,84 @@
 
       const catKey = (t.category || "other").toLowerCase();
       const catEl = document.createElement("span");
-      catEl.className = `cc-cat cat-${catKey}`;
-      catEl.textContent = CAT_LABELS[catKey] || t.category;
+      catEl.className = `cc-row-cat cat-${catKey}`;
+      catEl.textContent = CAT_BADGE[catKey] || catKey;
       catEl.style.flexShrink = "0";
 
       left.appendChild(nameEl);
       left.appendChild(catEl);
 
-      const label = document.createElement("label");
-      label.className = "cc-toggle-wrap";
-      label.style.flexShrink = "0";
-
-      const chk = document.createElement("input");
-      chk.type = "checkbox";
+      const lbl = document.createElement("label");
+      lbl.className = "cc-toggle"; lbl.style.flexShrink = "0";
+      const chk = document.createElement("input"); chk.type = "checkbox";
       chk.checked = blockedSet.has(t.name);
-
-      const track = document.createElement("span");
-      track.className = "cc-toggle-track";
-      track.innerHTML = '<span class="cc-toggle-thumb"></span>';
-
-      label.appendChild(chk);
-      label.appendChild(track);
+      const track = document.createElement("span"); track.className = "cc-track";
+      track.innerHTML = '<span class="cc-thumb"></span>';
+      lbl.appendChild(chk); lbl.appendChild(track);
 
       chk.addEventListener("change", () => {
-        const block = chk.checked;
         chrome.runtime.sendMessage(
-          { type: block ? "BLOCK_TRACKER" : "UNBLOCK_TRACKER", name: t.name },
+          { type: chk.checked ? "BLOCK_TRACKER" : "UNBLOCK_TRACKER", name:t.name },
           () => {
             if (chrome.runtime.lastError) return;
-            if (block) blockedSet.add(t.name);
-            else       blockedSet.delete(t.name);
-            if (expanded) renderTrackers();
-            renderBlocklist(list, blSearch.value, blBlockedOnly.checked);
+            if (chk.checked) blockedSet.add(t.name); else blockedSet.delete(t.name);
+            if (expanded && activeTab === "page") renderTrackers();
+            renderBlocklist();
           }
         );
       });
 
-      row.appendChild(left);
-      row.appendChild(label);
+      row.appendChild(left); row.appendChild(lbl);
       blList.appendChild(row);
     }
   }
 
   function loadBlocklist() {
-    if (allTrackers) {
-      renderBlocklist(allTrackers, blSearch.value, blBlockedOnly.checked);
-      return;
-    }
-    const blList = settingsPopout.querySelector("#cc-bl-list");
+    if (allTrackers) { renderBlocklist(); return; }
     blList.innerHTML = '<div class="cc-bl-loading">Loading…</div>';
-    chrome.runtime.sendMessage({ type: "GET_ALL_TRACKERS" }, (resp) => {
+    chrome.runtime.sendMessage({ type:"GET_ALL_TRACKERS" }, (resp) => {
       if (chrome.runtime.lastError || !resp) return;
-      allTrackers = resp.trackers.slice().sort((a, b) => a.name.localeCompare(b.name));
+      allTrackers = resp.trackers.slice().sort((a,b) => a.name.localeCompare(b.name));
       blSearch.placeholder = `Filter ${allTrackers.length} trackers…`;
-      renderBlocklist(allTrackers, "", true); // default: blocked only
+      renderBlocklist();
     });
   }
 
-  function openSettings() {
-    settingsOpen = true;
-    settingsBtn.classList.add("active");
+  blSearch.addEventListener("input", renderBlocklist);
+  blBlockedOnly.addEventListener("change", renderBlocklist);
 
-    // Position the popout to the left of the panel, aligned with the header
-    const panelRect = panel.getBoundingClientRect();
-    settingsPopout.style.top   = panelRect.top + "px";
-    settingsPopout.style.right = (window.innerWidth - panelRect.left + 8) + "px";
-
-    siteHostname.textContent = location.hostname;
-    chrome.runtime.sendMessage(
-      { type: "IS_SITE_DISABLED", host: location.hostname },
-      (resp) => { siteToggle.checked = !(resp && resp.disabled); }
-    );
-    settingsPopout.classList.add("visible");
-    loadBlocklist();
+  // ── Incoming data ──────────────────────────────────────────────────────────
+  function applyUpdate(data) {
+    if (!data) return;
+    if (data.trackers) trackers = data.trackers;
+    if (data.banner)   bannerStatus = data.banner;
+    badge.textContent = trackers.length;
+    badge.className   = "cc-badge" + (trackers.length === 0 ? " zero" : "");
+    if (expanded && activeTab === "page") { renderBanner(); renderTrackers(); }
   }
 
-  function closeSettings() {
-    settingsOpen = false;
-    settingsBtn.classList.remove("active");
-    settingsPopout.classList.remove("visible");
-  }
-
-  settingsBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (settingsOpen) closeSettings();
-    else openSettings();
-  });
-
-  siteToggle.addEventListener("change", () => {
-    const enabled = siteToggle.checked;
-    chrome.runtime.sendMessage(
-      { type: "SET_SITE_ENABLED", host: location.hostname, enabled },
-      () => {
-        // Hide the whole overlay if disabled
-        if (!enabled) {
-          closePanel();
-          host.style.display = "none";
-        }
-      }
-    );
-  });
-
-  resetPosBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    host.style.left = "";
-    host.style.top  = "20px";
-    host.style.right = "20px";
-    chrome.storage.local.remove("overlayPos");
-  });
-
-  // Close on outside click
-  // Closed shadow DOM prunes composedPath() and retargets e.target to `host` for all
-  // inner clicks, so we can't distinguish inside-shadow clicks from the document.
-  // Solution: use the document listener only to detect clicks fully OUTSIDE the shadow
-  // (e.target !== host), and use a shadow-root listener for inside-shadow logic where
-  // composedPath() is unpruned.
-  document.addEventListener("click", (e) => {
-    if (didDrag) return;
-    if (e.target !== host) {
-      if (settingsOpen) closeSettings();
-      if (expanded) closePanel();
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg.type === "TRACKER_UPDATE")       applyUpdate(msg);
+    if (msg.type === "BANNER_STATUS_UPDATE") {
+      bannerStatus = { found:msg.found, declined:msg.declined };
+      if (expanded && activeTab === "page") renderBanner();
     }
   });
 
-  // Inside the shadow, close settings when clicking anywhere outside the popout itself
-  shadow.addEventListener("click", (e) => {
-    if (!settingsOpen) return;
-    const path = e.composedPath();
-    if (!path.includes(settingsPopout) && !path.includes(settingsBtn)) {
-      closeSettings();
-    }
+  chrome.runtime.sendMessage({ type:"GET_MY_TAB_DATA" }, (resp) => {
+    if (!resp) return;
+    trackers     = resp.trackers || [];
+    bannerStatus = resp.banner   || { found:false, declined:false };
+    badge.textContent = trackers.length;
+    badge.className   = "cc-badge" + (trackers.length === 0 ? " zero" : "");
+    chrome.runtime.sendMessage({ type:"GET_BLOCKED_TRACKERS" }, (r) => {
+      if (r && r.blocked) r.blocked.forEach(n => blockedSet.add(n));
+    });
   });
 
-  // Restore saved position
   chrome.storage.local.get("overlayPos", (data) => {
     if (!data.overlayPos) return;
     const { left, top } = data.overlayPos;
-    // Clamp to current viewport in case window was resized
     const maxX = window.innerWidth  - host.offsetWidth  - 2;
     const maxY = window.innerHeight - host.offsetHeight - 2;
     host.style.right = "";
@@ -1312,55 +938,4 @@
     host.style.top   = Math.max(0, Math.min(top,  maxY)) + "px";
   });
 
-  // ── Communication with background ─────────────────────────────────────────
-
-  function applyUpdate(data) {
-    if (!data) return;
-    if (data.trackers) trackers = data.trackers;
-    if (data.banner) bannerStatus = data.banner;
-
-    // Always update badge count
-    badge.textContent = trackers.length;
-    badge.className = "cc-badge" + (trackers.length === 0 ? " zero" : "");
-
-    // Re-render if open
-    if (expanded) {
-      renderBanner();
-      renderTrackers();
-    }
-  }
-
-  // Listen for push updates from background
-  chrome.runtime.onMessage.addListener((msg) => {
-    if (msg.type === "TRACKER_UPDATE") {
-      applyUpdate(msg);
-    }
-    if (msg.type === "BANNER_STATUS_UPDATE") {
-      bannerStatus = { found: msg.found, declined: msg.declined };
-      if (expanded) renderBanner();
-    }
-  });
-
-  // Request initial state on load
-  chrome.runtime.sendMessage({ type: "GET_MY_TAB_DATA" }, (resp) => {
-    if (chrome.runtime.lastError) return;
-    applyUpdate(resp);
-  });
-
-  // Fetch blocked trackers so the UI can reflect them on first render
-  chrome.runtime.sendMessage({ type: "GET_BLOCKED_TRACKERS" }, (resp) => {
-    if (chrome.runtime.lastError) return;
-    if (resp && resp.blocked) blockedSet = new Set(resp.blocked);
-  });
-
-  // Check if disabled for this site
-  chrome.runtime.sendMessage(
-    { type: "IS_SITE_DISABLED", host: location.hostname },
-    (resp) => {
-      if (chrome.runtime.lastError) return;
-      if (resp && resp.disabled) {
-        host.style.display = "none";
-      }
-    }
-  );
 })();

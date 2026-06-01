@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "TrackerTracker",
-  "version": "0.6.3",
-  "description": "See exactly what's tracking you — in plain English. Blocks trackers one by one or all at once.",
+  "version": "1.0.0",
+  "description": "See exactly what's tracking you - in plain English. Blocks trackers one by one or all at once.",
   "permissions": [
     "webRequest",
     "storage",

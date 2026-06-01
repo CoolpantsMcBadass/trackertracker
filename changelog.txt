@@ -1,12 +1,51 @@
 TrackerTracker Changelog
 ========================
 
+[0.8.3] 2026-06-01
+- icons: final Plankton eye layout - iris centered at icon center (64,64), sclera cx=64 cy=70 rx=26 ry=23, eyebrow raised so inner bottom barely touches sclera top (y=47); re-exported at 16/48/128px
+- overlay.js: inline SVGs updated to match
+
+[0.8.2] 2026-06-01
+- icons: fixed Plankton eye pupil centering - sclera made more circular (rx/ry 28/26), iris centered at same point (cx=64 cy=90), highlight adjusted; re-exported at 16/48/128px
+- overlay.js: updated inline SVG to match
+
+[0.8.1] 2026-06-01
+- popup + overlay: removed inline descriptions from tracker rows - description now shows on hover only (native tooltip in popup; floating tooltip in overlay)
+- popup + overlay: settings moved to gear icon (⚙) in panel header top-right; bottom nav removed from popup entirely
+- popup + overlay: light/dark mode toggle restored under Settings → Appearance; popup persists to popupTheme, overlay persists to overlayTheme
+
+[0.8.0] 2026-06-01
+- popup: full redesign inspired by Bitwarden dark mode - deeper background (#15191e), bottom nav bar (This Page / Settings), tracker list grouped by category with ALL-CAPS section headers, list-row style replacing cards, full-width search bar, 360px width
+- popup: settings moved into Settings tab - site toggle, block-all, block-by-default
+- popup: banner status rendered as inline chip (ok/warn/none)
+
+[0.7.4] 2026-06-01
+- background.js: added preemptive block-all using sequential declarativeNetRequest rule IDs from 100000+ (avoids hash collisions with individual blocks); enableBlockAll/disableBlockAll functions
+- background.js: added SET_BLOCK_ALL, GET_BLOCK_ALL, SET_BLOCK_ALL_DEFAULT message handlers
+- background.js: consolidated startup into single async init() so block-all always waits for trackers to load before applying rules
+- overlay.js: added "Block all trackers" and "Block by default" toggles to settings popout; state synced from background on open; turning on default auto-enables block-all and vice versa
+
+[0.7.3] 2026-06-01
+- background.js: first tracker detected on a page now pushes to the overlay immediately instead of waiting for the 400ms debounce; subsequent trackers still debounce to batch updates
+
+[0.7.2] 2026-06-01
+- data/trackers.json: generated plain-English privacy-focused descriptions for all 3435 trackers using Claude; descriptions say what each tracker collects or does to the user (not corporate blurbs)
+- scripts/generate-descriptions.js: generation script retained for future re-runs if tracker list is updated
+
+[0.7.1] 2026-06-01
+- scripts/build-trackers.js: fixed CATEGORY_MAP - 'advertising' was incorrectly mapped to 'ads' instead of 'advertising', causing 1706 ad trackers to render without CSS styling or label in the popup and overlay
+
+[0.7.0] 2026-06-01
+- data/trackers.json: replaced hand-curated 241-tracker list with Ghostery Tracker Database (ghostery/trackerdb, CC-BY-NC-SA-4.0); now 3435 trackers across 5059 domains
+- scripts/build-trackers.js: new build script - fetches latest @ghostery/trackerdb from npm and converts to TrackerTracker format; run with `node scripts/build-trackers.js` to update
+- background.js: matchTracker() rewritten from O(n) linear scan to O(hostname_depth) suffix-based Map lookups; required for correctness at scale
+
 [0.6.3] 2026-05-29
 - background.js: toolbar badge now uses yellow bg (#f2e840) with dark text (#1a1a1a) via setBadgeTextColor; matches icon palette
 - overlay.js: pill badge text changed to #e8f0ff (white-ish) in dark mode; dark (#111827) in light mode to fix yellow-on-white readability issue
 
 [0.6.2] 2026-05-29
-- overlay.js: badge redesign — removed red pill background, now shows plain number in yellow (#f2e840); zero state shows dim color only
+- overlay.js: badge redesign - removed red pill background, now shows plain number in yellow (#f2e840); zero state shows dim color only
 - overlay.js: block-all toggle replaced with native checkbox (accent-color #f2e840); removed non-functional cc-toggle-track span from the label
 - icons: Plankton flat-style icon (wing eyebrow touching sclera) exported at 16/48/128px; note Chrome toolbar icon requires extension reload at chrome://extensions to update
 
@@ -14,19 +53,19 @@ TrackerTracker Changelog
 - overlay.js, popup.css: swapped blue accent (#3b82f6) for Plankton eye yellow (#f2e840); darker variant updated to #c8ba00 for light mode; ties UI accent directly to icon color
 
 [0.6.0] 2026-05-29
-- icons/: replaced cookie-with-knife with Plankton's eye (green skin bg, yellow sclera, red iris, single lash) — exported at 16/48/128px via Inkscape
-- overlay.js: replaced inline cookie SVG (pill + panel header) with Plankton eye SVG; full palette swap — zinc/amber → navy/blue: bg #0d1117, surface #111827, border #1e2d42, accent #3b82f6, text #e8f0ff, muted #8b9abf
+- icons/: replaced cookie-with-knife with Plankton's eye (green skin bg, yellow sclera, red iris, single lash) - exported at 16/48/128px via Inkscape
+- overlay.js: replaced inline cookie SVG (pill + panel header) with Plankton eye SVG; full palette swap - zinc/amber → navy/blue: bg #0d1117, surface #111827, border #1e2d42, accent #3b82f6, text #e8f0ff, muted #8b9abf
 - popup.css: updated :root CSS variables to match new navy/blue palette
 
 [0.5.5] 2026-05-29
 - Renamed: Cookiecutter → TrackerTracker across manifest.json, popup.html, popup.js, overlay.js, background.js; host element id updated to trackertracker-host; description updated; action title updated
 
 [0.5.4] 2026-05-29
-- overlay.js: fixed settings popout closing on inner clicks — root cause was composedPath() being pruned by closed shadow DOM for document-level listeners; replaced with two-listener strategy: document listener checks e.target !== host (detects truly outside clicks), shadow root listener uses composedPath() unpruned to close settings when clicking inside shadow but outside the popout
+- overlay.js: fixed settings popout closing on inner clicks - root cause was composedPath() being pruned by closed shadow DOM for document-level listeners; replaced with two-listener strategy: document listener checks e.target !== host (detects truly outside clicks), shadow root listener uses composedPath() unpruned to close settings when clicking inside shadow but outside the popout
 - overlay.js: added "Blocked only" checkbox to blocklist section, checked by default; unchecking shows all 241 trackers; search filter applies on top of blocked-only filter; toggling a tracker re-renders the list respecting current filter state; amber accent-color on native checkbox
 
 [0.5.3] 2026-05-29
-- overlay.js: fixed settings popout closing on any click inside it — root cause was the outside-click handler using e.target/.contains() which shadow DOM retargets to the host element, making every inner click look like an outside click; replaced with e.composedPath() which pierces shadow boundaries and returns the real event path
+- overlay.js: fixed settings popout closing on any click inside it - root cause was the outside-click handler using e.target/.contains() which shadow DOM retargets to the host element, making every inner click look like an outside click; replaced with e.composedPath() which pierces shadow boundaries and returns the real event path
 
 [0.5.2] 2026-05-29
 - background.js: added GET_ALL_TRACKERS handler (returns full trackerList to content scripts)
@@ -41,7 +80,7 @@ TrackerTracker Changelog
 - overlay.js: added blockedSet state; each tracker row gets a ⊘ block button (hidden until hover, turns red when blocked); clicking toggles BLOCK_TRACKER/UNBLOCK_TRACKER messages; blocked rows show name strikethrough + faded logo/badge; blocked state fetched from background on init via GET_BLOCKED_TRACKERS; light mode CSS overrides for block button added
 
 [0.4.7] 2026-05-29
-- overlay.js: reverted OS-preference detection — prefers-color-scheme picks up "device default" from Chrome which resolves to light on light-mode devices, overriding the intended dark default; dark is now unconditional default when no overlayTheme is saved; user can opt into light via the settings toggle
+- overlay.js: reverted OS-preference detection - prefers-color-scheme picks up "device default" from Chrome which resolves to light on light-mode devices, overriding the intended dark default; dark is now unconditional default when no overlayTheme is saved; user can opt into light via the settings toggle
 
 [0.4.6] 2026-05-29
 - overlay.js: theme now defaults to OS preference (prefers-color-scheme) on first load instead of hardcoded dark; saved overlayTheme still takes priority when present
@@ -50,7 +89,7 @@ TrackerTracker Changelog
 - overlay.js: added light/dark mode toggle in settings popout; dark is default; toggling adds/removes cc-light class on the shadow host; all overlay elements (pill, panel, header, badges, category labels, tracker logos, tooltip, settings popout) re-skin via :host(.cc-light) CSS overrides; preference persisted to chrome.storage.local as overlayTheme
 
 [0.4.4] 2026-05-29
-- overlay.js: fix gear button swallowing click — startDrag now bails early if the mousedown target is a button/input/label/a, preventing e.preventDefault() from suppressing click events on interactive elements in the drag handle area
+- overlay.js: fix gear button swallowing click - startDrag now bails early if the mousedown target is a button/input/label/a, preventing e.preventDefault() from suppressing click events on interactive elements in the drag handle area
 
 [0.4.3] 2026-05-29
 - overlay.js: settings now pop out as a separate floating panel to the left of the main panel instead of replacing the tracker list; popout is a fixed-position shadow-root-level div with a right-pointing speech-bubble tail; tracker list stays fully visible; popout closes on outside click or gear button re-click
@@ -62,7 +101,7 @@ TrackerTracker Changelog
 - overlay.js: added click-and-drag to reposition the widget anywhere on screen; pill and panel header both act as drag handles; 4px movement threshold distinguishes drag from click so toggle still works; cursor changes to grabbing during drag; tooltip hides during drag; position persisted to chrome.storage.local and restored on next page load with viewport clamping
 
 [0.4.0] 2026-05-29
-- data/trackers.json: expanded from 154 to 241 trackers (+87) — added full coverage of:
+- data/trackers.json: expanded from 154 to 241 trackers (+87) - added full coverage of:
   Ad exchanges: Adform, BidSwitch, Amobee, DataXu/Roku OneView, Undertone/Perion, EMX Digital, RhythmOne, Zedo, LoopMe, AppLovin, InMobi, Digital Turbine, Unity Ads/IronSource, Kargo, Bombora, Carbon Ads, BuySellAds, Ezoic, Mediavine, Raptive/AdThrive
   Affiliate: Skimlinks, VigLink/Sovrn Commerce, Impact, CJ Affiliate, Rakuten Advertising, Awin, ShareASale, PartnerStack, TUNE/HasOffers
   Attribution: Singular, Rockerbox, Northbeam, Triple Whale
@@ -76,23 +115,23 @@ TrackerTracker Changelog
   B2B/other: ZoomInfo, iSpot.tv, Algolia Insights, Google Maps API, Mapbox, Stripe Radar, PayPal
 
 [0.3.3] 2026-05-29
-- overlay.js: tooltip restyled as speech bubble — ::before draws border-colored tail, ::after draws fill-colored tail on top, creating a right-pointing arrow that points back at the hovered tracker row; slightly larger padding, rounder corners, lighter text
+- overlay.js: tooltip restyled as speech bubble - ::before draws border-colored tail, ::after draws fill-colored tail on top, creating a right-pointing arrow that points back at the hovered tracker row; slightly larger padding, rounder corners, lighter text
 
 [0.3.2] 2026-05-29
-- overlay.js: fixed tooltip not appearing — root cause was overflow-y:auto on .cc-list clipping absolutely-positioned children; replaced CSS :hover tooltip with a single shared position:fixed tooltip appended to shadow root, shown/hidden via JS mouseenter/mouseleave with viewport-relative coordinates
+- overlay.js: fixed tooltip not appearing - root cause was overflow-y:auto on .cc-list clipping absolutely-positioned children; replaced CSS :hover tooltip with a single shared position:fixed tooltip appended to shadow root, shown/hidden via JS mouseenter/mouseleave with viewport-relative coordinates
 
 [0.3.1] 2026-05-29
 - overlay.js: tracker list now shows logo + name only; description moved to CSS tooltip that appears to the left on hover; items vertically centered; cursor changed to help
 
 [0.3.0] 2026-05-29
 - overlay.js: moved pill from bottom-right to top-right (top: 20px); panel now drops down below pill
-- data/trackers.json: expanded from 120 to 157 trackers — added Teads, Unruly, Tremor Video, TripleLift, Sharethrough, Nativo, Connatix, Innovid, Yahoo/Oath DSP, Quora Pixel, Wistia, Vidyard, JW Player, Brightcove, Leadfeeder/Dealfront, Albacross, Clearbit Reveal, Demandbase, 6sense, Adobe Analytics/Omniture, Adobe Audience Manager, Neustar/TransUnion, Acxiom, Perfect Audience, Salesloft, Outreach.io, Samba TV, GoSquared, etracker, Histats, Yieldmo, Smart AdServer/Equativ, Extreme Reach, Pubstack, Seedtag, Fathom Analytics, Simple Analytics, Plausible
+- data/trackers.json: expanded from 120 to 157 trackers - added Teads, Unruly, Tremor Video, TripleLift, Sharethrough, Nativo, Connatix, Innovid, Yahoo/Oath DSP, Quora Pixel, Wistia, Vidyard, JW Player, Brightcove, Leadfeeder/Dealfront, Albacross, Clearbit Reveal, Demandbase, 6sense, Adobe Analytics/Omniture, Adobe Audience Manager, Neustar/TransUnion, Acxiom, Perfect Audience, Salesloft, Outreach.io, Samba TV, GoSquared, etracker, Histats, Yieldmo, Smart AdServer/Equativ, Extreme Reach, Pubstack, Seedtag, Fathom Analytics, Simple Analytics, Plausible
 
 [0.2.0] 2026-05-29
 - overlay.js: floating pill injected into every page via Shadow DOM (style-isolated); shows live tracker count badge; click to expand panel with full tracker list, category badges, plain-English descriptions, and banner status; collapses on outside click or X button; receives push updates from background via TRACKER_UPDATE / BANNER_STATUS_UPDATE messages; requests initial state on load via GET_MY_TAB_DATA; respects per-site disable toggle
 - background.js: added GET_MY_TAB_DATA handler (sender.tab.id context); added schedulePush() to debounce-push TRACKER_UPDATE to content scripts when new trackers are detected (400ms debounce, only on new trackers); BANNER_STATUS now also pushes BANNER_STATUS_UPDATE to overlay
 - manifest.json: bumped to v0.2.0; added overlay.js to content_scripts
-- data/trackers.json: expanded from 50 to 120 trackers — added Xandr/AppNexus, OpenX, Magnite/Rubicon, Index Exchange, PubMatic, Sovrn, The Trade Desk, MediaMath, Lotame, Oracle BlueKai, AdRoll, Moat, IAS, DoubleVerify, Kochava, Adjust, AppsFlyer, Branch, Conversant, GumGum, Revcontent, MGID, 33Across, SpotX, FreeWheel, ID5, LiveIntent, Audigent, Zeotap, Matomo, Woopra, Kissmetrics, Inspectlet, Clicky, StatCounter, Parse.ly, Pendo, Tealium, mParticle, PostHog, Contentsquare, AB Tasty, Dynamic Yield, Eloqua, ActiveCampaign, Mailchimp, Drip, Iterable, Emarsys, LiveChat, Freshchat, Olark, Tawk.to, Tidio, Crisp, Help Scout, YouTube Embeds, Vimeo Embeds, Twitter Widgets, Adobe Fonts, Spotify Embeds, Bugsnag, Rollbar, Dynatrace, Lucky Orange, Customer.io
+- data/trackers.json: expanded from 50 to 120 trackers - added Xandr/AppNexus, OpenX, Magnite/Rubicon, Index Exchange, PubMatic, Sovrn, The Trade Desk, MediaMath, Lotame, Oracle BlueKai, AdRoll, Moat, IAS, DoubleVerify, Kochava, Adjust, AppsFlyer, Branch, Conversant, GumGum, Revcontent, MGID, 33Across, SpotX, FreeWheel, ID5, LiveIntent, Audigent, Zeotap, Matomo, Woopra, Kissmetrics, Inspectlet, Clicky, StatCounter, Parse.ly, Pendo, Tealium, mParticle, PostHog, Contentsquare, AB Tasty, Dynamic Yield, Eloqua, ActiveCampaign, Mailchimp, Drip, Iterable, Emarsys, LiveChat, Freshchat, Olark, Tawk.to, Tidio, Crisp, Help Scout, YouTube Embeds, Vimeo Embeds, Twitter Widgets, Adobe Fonts, Spotify Embeds, Bugsnag, Rollbar, Dynatrace, Lucky Orange, Customer.io
 
 [0.1.0] 2026-05-29
 - Initial scaffold
@@ -102,3 +141,15 @@ TrackerTracker Changelog
 - popup/popup.html + popup.css + popup.js: dark-theme popup with tracker list (name, logo, category badge, plain-English description), banner status indicator, per-site toggle
 - data/trackers.json: 50 trackers across advertising, analytics, social, marketing, support, performance categories
 - icons: cookie-with-knife SVG + exported PNG at 16/48/128px
+
+v1.0.0 (2026-06-01)
+- Bumped version to 1.0.0 for Chrome Web Store launch
+- Added privacy-policy.html (to host on GitHub Pages)
+- Built submission zip: /tmp/trackertracker-1.0.0.zip (204KB, excludes scripts/, CHANGELOG.md, changelog.txt, icons/icon.svg)
+
+v1.0.0 (2026-06-01) [patch]
+- Replaced all em-dashes with hyphens across all project files
+
+v1.0.0 (2026-06-01) [patch]
+- Updated store description to credit Ghostery TrackerDB
+- Created store-submission/ folder with zip, privacy-policy, screenshots, store-listing.txt

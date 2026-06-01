@@ -1,4 +1,4 @@
-// Cookiecutter — Content Script
+// TrackerTracker - Content Script
 // Detects and auto-declines cookie consent banners
 
 (function () {
@@ -101,7 +101,7 @@
     "only essential",
     "use necessary cookies",
     "accept necessary",
-    "manage preferences",  // lower priority — only if nothing else found
+    "manage preferences",  // lower priority - only if nothing else found
   ];
 
   const ACCEPT_PHRASES = [
@@ -185,7 +185,7 @@
         }
       }
 
-      // Banner found but no reject button identified via selector — flag it
+      // Banner found but no reject button identified via selector - flag it
       bannerFound = true;
       reportStatus();
     }
@@ -292,5 +292,5 @@
 
   // ── Handle iframes ────────────────────────────────────────────────────────
   // Content script runs in all frames by default (all_frames: true would be needed
-  // for cross-origin iframes — added as a future enhancement in manifest).
+  // for cross-origin iframes - added as a future enhancement in manifest).
 })();
