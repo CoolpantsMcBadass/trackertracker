@@ -80,9 +80,46 @@ function saveBlockedTrackers() {
   chrome.storage.local.set({ blockedTrackers: obj });
 }
 
+// ── Site-level allow rules (override block-all for disabled sites) ───────────
+
+// When block-all is active, each disabled site gets a priority-4 allow rule so
+// its own requests bypass the priority-3 block-all rules.
+const SITE_ALLOW_ID_BASE = 200000;
+const siteAllowRuleIds = new Map(); // hostname -> DNR rule ID
+let nextSiteAllowRuleId = SITE_ALLOW_ID_BASE;
+
+async function addSiteAllowRule(host) {
+  if (!blockAllEnabled) return;
+  if (siteAllowRuleIds.has(host)) return;
+  const id = nextSiteAllowRuleId++;
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    addRules: [{
+      id,
+      priority: 4,
+      action: { type: "allow" },
+      condition: { initiatorDomains: [host], resourceTypes: BLOCK_RESOURCE_TYPES }
+    }]
+  });
+  siteAllowRuleIds.set(host, id);
+}
+
+async function removeSiteAllowRule(host) {
+  const id = siteAllowRuleIds.get(host);
+  if (id === undefined) return;
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [id] });
+  siteAllowRuleIds.delete(host);
+}
+
+async function removeAllSiteAllowRules() {
+  const ids = Array.from(siteAllowRuleIds.values());
+  if (ids.length) await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
+  siteAllowRuleIds.clear();
+  nextSiteAllowRuleId = SITE_ALLOW_ID_BASE;
+}
+
 // ── Preemptive block-all ─────────────────────────────────────────────────────
 
-const BLOCK_ALL_EXCLUDED_CATS = ["support"];
+const BLOCK_ALL_EXCLUDED_CATS = ["support", "performance", "other"];
 
 async function enableBlockAll() {
   const rules = [];
@@ -112,6 +149,13 @@ async function enableBlockAll() {
     throw err;
   }
   blockAllEnabled = true;
+
+  // Add allow rules for any sites already disabled so block-all doesn't break them
+  for (const host of disabledSites) {
+    try { await addSiteAllowRule(host); } catch (err) {
+      console.error("[TrackerTracker] failed to add site-allow rule for", host, err);
+    }
+  }
 }
 
 async function disableBlockAll() {
@@ -120,6 +164,8 @@ async function disableBlockAll() {
     const ids = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
     if (ids.length) await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
     blockAllEnabled = false;
+    // Site-allow rules are only meaningful while block-all is active; clean them up
+    await removeAllSiteAllowRules();
   } catch (err) {
     console.error("[TrackerTracker] disableBlockAll failed:", err);
     throw err;
@@ -349,14 +395,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "SET_SITE_ENABLED") {
-    if (msg.enabled) {
-      disabledSites.delete(msg.host);
-    } else {
-      disabledSites.add(msg.host);
-    }
-    // Persist to storage
-    chrome.storage.local.set({ disabledSites: Array.from(disabledSites) });
-    sendResponse({ ok: true });
+    initPromise.then(async () => {
+      if (msg.enabled) {
+        disabledSites.delete(msg.host);
+        try { await removeSiteAllowRule(msg.host); } catch (_) {}
+      } else {
+        disabledSites.add(msg.host);
+        try { await addSiteAllowRule(msg.host); } catch (_) {}
+      }
+      chrome.storage.local.set({ disabledSites: Array.from(disabledSites) });
+      sendResponse({ ok: true });
+    });
     return true;
   }
 

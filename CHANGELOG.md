@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.4] - 2026-06-02
+
+### Fixed
+- background.js: excluded performance and other categories from block-all in addition to support. Performance covers CDN/infrastructure (Akamai, Azure CDN, CloudFront); other covers broad platform domains like `office.com` whose `||office.com` DNR rule was blocking all of Outlook's API calls to `substrate.office.com` and other subdomains, causing Outlook Web to show a connection error.
+- background.js: added site-level allow rules (priority 4, `initiatorDomains`) for disabled sites when block-all is active, so per-site disable properly overrides block-all for requests originating from that page.
+
+---
+
 ## [1.0.3] - 2026-06-02
 
 ### Fixed
