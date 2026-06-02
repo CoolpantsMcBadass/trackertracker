@@ -61,16 +61,16 @@ async function addBlockRules(domains) {
 }
 
 async function removeBlockRules(domains) {
-  const ids = [];
+  const toRemove = [];
   for (const domain of domains) {
     const id = domainRuleIds.get(domain);
-    if (id !== undefined) {
-      ids.push(id);
-      domainRuleIds.delete(domain);
-    }
+    if (id !== undefined) toRemove.push({ domain, id });
   }
-  if (!ids.length) return;
-  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
+  if (!toRemove.length) return;
+  // Mutate memory only after the DNR call succeeds - if it throws, the map
+  // stays intact so the rule IDs aren't permanently lost.
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: toRemove.map(x => x.id) });
+  for (const { domain } of toRemove) domainRuleIds.delete(domain);
   saveRuleIdMap();
 }
 
@@ -115,10 +115,15 @@ async function enableBlockAll() {
 }
 
 async function disableBlockAll() {
-  const existing = await chrome.declarativeNetRequest.getDynamicRules();
-  const ids = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
-  if (ids.length) await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
-  blockAllEnabled = false;
+  try {
+    const existing = await chrome.declarativeNetRequest.getDynamicRules();
+    const ids = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
+    if (ids.length) await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
+    blockAllEnabled = false;
+  } catch (err) {
+    console.error("[TrackerTracker] disableBlockAll failed:", err);
+    throw err;
+  }
 }
 
 let trackerList = [];
@@ -163,7 +168,12 @@ function updateBadge(tabId) {
 
 // Single init - loads trackers first, then restores persisted settings in order
 async function init() {
-  await loadTrackers();
+  try {
+    await loadTrackers();
+  } catch (err) {
+    console.error("[TrackerTracker] failed to load tracker database:", err);
+    return; // can't function without tracker data; initPromise resolves (not rejects) so handlers still register
+  }
 
   const data = await chrome.storage.local.get([
     "blockedTrackers", "disabledSites", "blockAllDefault", "ruleIdMap"
@@ -179,7 +189,8 @@ async function init() {
     for (const [domain, id] of Object.entries(data.ruleIdMap)) {
       domainRuleIds.set(domain, id);
     }
-    const maxId = domainRuleIds.size ? Math.max(...domainRuleIds.values()) : INDIVIDUAL_ID_MIN - 1;
+    let maxId = INDIVIDUAL_ID_MIN - 1;
+    for (const id of domainRuleIds.values()) { if (id > maxId) maxId = id; }
     nextIndividualRuleId = Math.min(maxId + 1, BLOCK_ALL_ID_BASE - 1);
   }
 
@@ -284,6 +295,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
     tabTrackers.delete(tabId);
     tabBannerStatus.delete(tabId);
     pushFired.delete(tabId);
+    clearTimeout(pushTimers.get(tabId));
+    pushTimers.delete(tabId);
     updateBadge(tabId);
   }
 });
@@ -331,7 +344,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "GET_SITE_ENABLED") {
-    sendResponse({ enabled: !disabledSites.has(msg.host) });
+    initPromise.then(() => sendResponse({ enabled: !disabledSites.has(msg.host) }));
     return true;
   }
 
@@ -348,12 +361,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "IS_SITE_DISABLED") {
-    sendResponse({ disabled: disabledSites.has(msg.host) });
+    initPromise.then(() => sendResponse({ disabled: disabledSites.has(msg.host) }));
     return true;
   }
 
   if (msg.type === "GET_BLOCKED_TRACKERS") {
-    sendResponse({ blocked: Array.from(blockedTrackers.keys()) });
+    initPromise.then(() => sendResponse({ blocked: Array.from(blockedTrackers.keys()) }));
     return true;
   }
 
@@ -370,6 +383,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       addBlockRules(tracker.domains).then(() => {
         saveBlockedTrackers();
         sendResponse({ ok: true });
+      }).catch(err => {
+        console.error("[TrackerTracker] BLOCK_TRACKER failed:", err);
+        blockedTrackers.delete(tracker.name);
+        sendResponse({ ok: false });
       });
     });
     return true;
@@ -382,6 +399,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       removeBlockRules(domains).then(() => {
         saveBlockedTrackers();
         sendResponse({ ok: true });
+      }).catch(err => {
+        console.error("[TrackerTracker] UNBLOCK_TRACKER failed:", err);
+        blockedTrackers.set(msg.name, domains);
+        sendResponse({ ok: false });
       });
     });
     return true;

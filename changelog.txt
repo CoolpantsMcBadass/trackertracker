@@ -218,3 +218,13 @@ v1.0.3 (2026-06-02) [fix 8/8]
 v1.0.3 (2026-06-02) [fix]
 - overlay.js: panel now resets to tracker list tab when closed, so reopening always shows trackers not settings
 - overlay.js: changed 'trackers on this page' to 'trackers on this page so far' to imply detection is ongoing
+
+v1.0.3 (2026-06-02) [audit fixes]
+- background.js: removeBlockRules now mutates domainRuleIds only after the DNR call succeeds; previously a failed updateDynamicRules would leave the rule active but the ID permanently lost from the map
+- background.js: loadTrackers() failure now caught in init() so initPromise resolves instead of rejecting; extension degrades gracefully rather than breaking all message handlers
+- background.js: BLOCK_TRACKER and UNBLOCK_TRACKER handlers now have .catch() - on failure, sendResponse({ ok: false }) is called and in-memory state is rolled back
+- background.js: disableBlockAll() now has try/catch so blockAllEnabled state stays accurate on failure
+- background.js: replaced Math.max(...Map.values()) with a for..of loop to avoid stack overflow when many trackers are individually blocked
+- background.js: tabs.onUpdated now clears pushTimers on navigation to prevent stale debounced pushes firing on the new page
+- background.js: GET_SITE_ENABLED, IS_SITE_DISABLED, GET_BLOCKED_TRACKERS now wait for initPromise before responding; fixes race condition where SW restart caused these to return stale empty data
+- popup/popup.js: replaced innerHTML with textContent for category header labels

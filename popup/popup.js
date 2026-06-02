@@ -77,10 +77,14 @@ function renderTrackers(trackers, query) {
 
     const header = document.createElement("div");
     header.className = "tt-cat-header";
-    header.innerHTML = `
-      <span class="tt-cat-name">${CATEGORY_LABELS[cat] || cat}</span>
-      <span class="tt-cat-count">${items.length}</span>
-    `;
+    const catNameEl = document.createElement("span");
+    catNameEl.className = "tt-cat-name";
+    catNameEl.textContent = CATEGORY_LABELS[cat] || cat;
+    const catCountEl = document.createElement("span");
+    catCountEl.className = "tt-cat-count";
+    catCountEl.textContent = items.length;
+    header.appendChild(catNameEl);
+    header.appendChild(catCountEl);
     section.appendChild(header);
 
     for (const t of items.sort((a, b) => a.name.localeCompare(b.name))) {
