@@ -1,6 +1,23 @@
 TrackerTracker Changelog
 ========================
 
+[1.0.3] 2026-06-01
+- overlay.js: switchTab("page") now calls renderTrackers() on every switch; previously switching from settings back to page tab showed stale DOM from before blockAllActive was set, so trackers didn't display as blocked even when block-all was on
+
+[1.0.2] 2026-06-01
+- background.js: removed blockAllEnabled from chrome.storage - it was being restored on every SW restart, making block-all re-activate on page load even without "block by default" being set; block-all is now session-only in memory, only blockAllDefault persists to storage
+- background.js: init() now only calls enableBlockAll() if blockAllDefault is true; otherwise clears any leftover block-all DNR rules from the previous session (fixes "blocking by default without clicking block by default" and the cascading "can't unblock" issue caused by blockAllActive being incorrectly true)
+- background.js: BLOCK_TRACKER and UNBLOCK_TRACKER handlers now await initPromise so trackerList and blockedTrackers are fully restored before acting
+
+[1.0.1] 2026-06-01
+- background.js: fixed race condition where GET_BLOCK_ALL and SET_BLOCK_ALL messages could arrive before init() finished loading trackers and restoring storage state; GET_BLOCK_ALL now awaits initPromise before reading blockAllEnabled/blockAllDefault, SET_BLOCK_ALL awaits initPromise before calling enableBlockAll() so trackerList is always populated
+- background.js: removed duplicate init calls (onInstalled + onStartup listeners were redundant in MV3 since the SW always runs module-level code on start); replaced with single const initPromise = init()
+- background.js: added try/catch in enableBlockAll around updateDynamicRules so Chrome API errors surface to the console instead of silently swallowing
+- background.js: SET_BLOCK_ALL now catches enableBlockAll/disableBlockAll errors and sends ok:false response
+- overlay.js: added blockAllActive state variable; enableBlockAll adds DNR rules but never populated blockedSet so nothing showed as blocked in the UI; fixed by factoring blockAllActive into all blockedSet.has() checks in renderTrackers, renderBlocklist, block button click handler, and blocklist row toggle
+- overlay.js: GET_BLOCK_ALL callback now sets blockAllActive and triggers re-render; blockAllGlobal change handler also updates blockAllActive and re-renders
+- overlay.js: blocklist toggles are disabled when block-all is active (individual overrides are meaningless while block-all is on)
+
 [0.8.3] 2026-06-01
 - icons: final Plankton eye layout - iris centered at icon center (64,64), sclera cx=64 cy=70 rx=26 ry=23, eyebrow raised so inner bottom barely touches sclera top (y=47); re-exported at 16/48/128px
 - overlay.js: inline SVGs updated to match
@@ -153,3 +170,16 @@ v1.0.0 (2026-06-01) [patch]
 v1.0.0 (2026-06-01) [patch]
 - Updated store description to credit Ghostery TrackerDB
 - Created store-submission/ folder with zip, privacy-policy, screenshots, store-listing.txt
+
+v1.0.3 (2026-06-01) [patch]
+- background.js: removed stylesheet and font from BLOCK_RESOURCE_TYPES - trackers don't need these resource types, and blocking them caused sites to break when CDN domains (e.g. fonts.googleapis.com) appeared in the tracker list
+
+v1.0.3 (2026-06-01) [patch]
+- background.js: excluded support-category trackers from block-all and block-by-default - support tools (GitHub, Intercom, Zendesk, etc.) are often load-critical for site functionality; blocking them was causing hangs (e.g. GitHub dashboard stuck on "One moment please...")
+
+v1.0.3 (2026-06-01) [patch]
+- background.js: extracted BLOCK_ALL_EXCLUDED_CATS constant; added excludedCats to GET_BLOCK_ALL response so UI can reflect which categories are actually blocked
+- overlay.js: added isEffectivelyBlocked() helper that respects excluded categories; support-category trackers no longer show as blocked/strikethrough when block-all is active; blocklist "blocked only" filter and toggle disabled state also updated
+
+v1.0.3 (2026-06-01) [patch]
+- background.js: fixed stale DNR rules causing block-all to stay active after being toggled off - root cause was atomic updateDynamicRules calls rolling back the removal when the add failed; split into separate remove/add calls so cleanup always succeeds; also restructured init() to unconditionally clear block-all rules before restoring state

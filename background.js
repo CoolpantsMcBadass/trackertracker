@@ -28,8 +28,8 @@ function domainToRuleId(domain) {
 }
 
 const BLOCK_RESOURCE_TYPES = [
-  "script", "xmlhttprequest", "image", "stylesheet",
-  "font", "media", "websocket", "ping", "sub_frame", "other"
+  "script", "xmlhttprequest", "image",
+  "media", "websocket", "ping", "sub_frame", "other"
 ];
 
 async function addBlockRules(domains) {
@@ -59,10 +59,13 @@ function saveBlockedTrackers() {
 
 // ── Preemptive block-all ─────────────────────────────────────────────────────
 
+const BLOCK_ALL_EXCLUDED_CATS = ["support"];
+
 async function enableBlockAll() {
   const rules = [];
   let id = BLOCK_ALL_ID_BASE;
   for (const tracker of trackerList) {
+    if (BLOCK_ALL_EXCLUDED_CATS.includes((tracker.category || "").toLowerCase())) continue;
     for (const domain of tracker.domains) {
       rules.push({
         id: id++,
@@ -72,12 +75,20 @@ async function enableBlockAll() {
       });
     }
   }
-  // Clear any stale block-all rules before adding fresh ones
+  // Clear stale block-all rules in a separate call first so removal succeeds
+  // even if the subsequent add fails (atomic combined calls roll back on failure).
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
   const staleIds = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
-  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: staleIds, addRules: rules });
+  if (staleIds.length) {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: staleIds });
+  }
+  try {
+    await chrome.declarativeNetRequest.updateDynamicRules({ addRules: rules });
+  } catch (err) {
+    console.error("[TrackerTracker] enableBlockAll failed:", err);
+    throw err;
+  }
   blockAllEnabled = true;
-  chrome.storage.local.set({ blockAllEnabled: true });
 }
 
 async function disableBlockAll() {
@@ -85,7 +96,6 @@ async function disableBlockAll() {
   const ids = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
   if (ids.length) await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
   blockAllEnabled = false;
-  chrome.storage.local.set({ blockAllEnabled: false });
 }
 
 let trackerList = [];
@@ -133,11 +143,21 @@ async function init() {
   await loadTrackers();
 
   const data = await chrome.storage.local.get([
-    "blockedTrackers", "disabledSites", "blockAllEnabled", "blockAllDefault"
+    "blockedTrackers", "disabledSites", "blockAllDefault"
   ]);
 
   if (data.disabledSites) {
     for (const host of data.disabledSites) disabledSites.add(host);
+  }
+
+  // Always clear stale block-all rules first. Block-all is session-only unless
+  // blockAllDefault is set, and a previously failed enableBlockAll() could leave
+  // orphaned rules in Chrome's DNR store that keep blocking even when the toggle
+  // shows as off. Clearing unconditionally before re-enabling if needed is safe.
+  const existing = await chrome.declarativeNetRequest.getDynamicRules();
+  const staleBlockAllIds = existing.filter(r => r.id >= BLOCK_ALL_ID_BASE).map(r => r.id);
+  if (staleBlockAllIds.length) {
+    await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: staleBlockAllIds });
   }
 
   if (data.blockedTrackers) {
@@ -149,14 +169,14 @@ async function init() {
 
   blockAllDefault = data.blockAllDefault || false;
 
-  if (data.blockAllEnabled || blockAllDefault) {
+  if (blockAllDefault) {
     await enableBlockAll();
   }
 }
 
-chrome.runtime.onInstalled.addListener(init);
-chrome.runtime.onStartup.addListener(init);
-init();
+// Single deduped init - covers fresh install, browser startup, and mid-session SW restarts.
+// onInstalled/onStartup are redundant in MV3 because the SW always runs module-level code on start.
+const initPromise = init();
 
 // Intercept requests and detect trackers
 chrome.webRequest.onBeforeRequest.addListener(
@@ -292,39 +312,48 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "GET_ALL_TRACKERS") {
-    sendResponse({ trackers: trackerList });
+    initPromise.then(() => sendResponse({ trackers: trackerList }));
     return true;
   }
 
   if (msg.type === "BLOCK_TRACKER") {
-    const tracker = trackerList.find(t => t.name === msg.name);
-    if (!tracker) { sendResponse({ ok: false }); return true; }
-    blockedTrackers.set(tracker.name, tracker.domains);
-    addBlockRules(tracker.domains).then(() => {
-      saveBlockedTrackers();
-      sendResponse({ ok: true });
+    initPromise.then(() => {
+      const tracker = trackerList.find(t => t.name === msg.name);
+      if (!tracker) { sendResponse({ ok: false }); return; }
+      blockedTrackers.set(tracker.name, tracker.domains);
+      addBlockRules(tracker.domains).then(() => {
+        saveBlockedTrackers();
+        sendResponse({ ok: true });
+      });
     });
     return true;
   }
 
   if (msg.type === "UNBLOCK_TRACKER") {
-    const domains = blockedTrackers.get(msg.name) || [];
-    blockedTrackers.delete(msg.name);
-    removeBlockRules(domains).then(() => {
-      saveBlockedTrackers();
-      sendResponse({ ok: true });
+    initPromise.then(() => {
+      const domains = blockedTrackers.get(msg.name) || [];
+      blockedTrackers.delete(msg.name);
+      removeBlockRules(domains).then(() => {
+        saveBlockedTrackers();
+        sendResponse({ ok: true });
+      });
     });
     return true;
   }
 
   if (msg.type === "GET_BLOCK_ALL") {
-    sendResponse({ enabled: blockAllEnabled, default: blockAllDefault });
+    initPromise.then(() => sendResponse({ enabled: blockAllEnabled, default: blockAllDefault, excludedCats: BLOCK_ALL_EXCLUDED_CATS }));
     return true;
   }
 
   if (msg.type === "SET_BLOCK_ALL") {
-    const fn = msg.enabled ? enableBlockAll : disableBlockAll;
-    fn().then(() => sendResponse({ ok: true }));
+    initPromise.then(() => {
+      const fn = msg.enabled ? enableBlockAll : disableBlockAll;
+      fn().then(() => sendResponse({ ok: true })).catch(err => {
+        console.error("[TrackerTracker] SET_BLOCK_ALL failed:", err);
+        sendResponse({ ok: false });
+      });
+    });
     return true;
   }
 

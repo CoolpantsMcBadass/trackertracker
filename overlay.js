@@ -11,10 +11,18 @@
   let bannerStatus = { found: false, declined: false };
   let expanded     = false;
   let activeTab    = "page"; // "page" | "settings"
-  let blockedSet   = new Set();
+  let blockedSet    = new Set();
+  let blockAllActive = false; // true when block-all is enabled; used alongside blockedSet
+  let blockAllExcludedCats = ["support"]; // categories exempt from block-all
   let allTrackers  = null;   // cached full list for blocklist
   let searchQuery  = "";
   let lightMode    = false;
+
+  function isEffectivelyBlocked(t) {
+    if (blockedSet.has(t.name)) return true;
+    if (blockAllActive && !blockAllExcludedCats.includes((t.category || "").toLowerCase())) return true;
+    return false;
+  }
 
   const CAT_ORDER  = ["advertising","analytics","social","marketing","support","performance","other"];
   const CAT_LABELS = {
@@ -546,6 +554,7 @@
     searchRow.style.display = tab === "page" ? "" : "none";
     gearBtn.classList.toggle("active", tab === "settings");
     if (tab === "settings") loadBlocklist();
+    if (tab === "page") renderTrackers();
   }
 
   gearBtn.addEventListener("click", (e) => {
@@ -625,7 +634,7 @@
       section.appendChild(catHeader);
 
       for (const t of items.sort((a,b) => a.name.localeCompare(b.name))) {
-        const isBlocked = blockedSet.has(t.name);
+        const isBlocked = isEffectivelyBlocked(t);
         const row = document.createElement("div");
         row.className = "cc-row" + (isBlocked ? " is-blocked" : "");
 
@@ -661,16 +670,17 @@
         blockBtn.addEventListener("click", (e) => {
           e.stopPropagation();
           tooltip.classList.remove("visible");
-          const nowBlocked = blockedSet.has(t.name);
+          const nowBlocked = isEffectivelyBlocked(t);
           chrome.runtime.sendMessage(
             { type: nowBlocked ? "UNBLOCK_TRACKER" : "BLOCK_TRACKER", name: t.name },
             () => {
               if (chrome.runtime.lastError) return;
               if (nowBlocked) blockedSet.delete(t.name);
               else            blockedSet.add(t.name);
-              row.classList.toggle("is-blocked", blockedSet.has(t.name));
-              blockBtn.classList.toggle("blocked", blockedSet.has(t.name));
-              blockBtn.title = blockedSet.has(t.name) ? "Unblock" : "Block";
+              const stillBlocked = isEffectivelyBlocked(t);
+              row.classList.toggle("is-blocked", stillBlocked);
+              blockBtn.classList.toggle("blocked", stillBlocked);
+              blockBtn.title = stillBlocked ? "Unblock" : "Block";
             }
           );
         });
@@ -783,14 +793,21 @@
     if (!resp) return;
     blockAllGlobal.checked  = resp.enabled;
     blockAllDefault.checked = resp.default;
+    blockAllActive = resp.enabled;
+    if (resp.excludedCats) blockAllExcludedCats = resp.excludedCats;
+    if (expanded && activeTab === "page") renderTrackers();
+    renderBlocklist();
   });
 
   blockAllGlobal.addEventListener("change", () => {
+    blockAllActive = blockAllGlobal.checked;
     chrome.runtime.sendMessage({ type:"SET_BLOCK_ALL", enabled:blockAllGlobal.checked }, () => {});
     if (!blockAllGlobal.checked && blockAllDefault.checked) {
       blockAllDefault.checked = false;
       chrome.runtime.sendMessage({ type:"SET_BLOCK_ALL_DEFAULT", enabled:false }, () => {});
     }
+    if (expanded && activeTab === "page") renderTrackers();
+    renderBlocklist();
   });
 
   blockAllDefault.addEventListener("change", () => {
@@ -827,7 +844,7 @@
     const q = blSearch.value.trim().toLowerCase();
     const blockedOnly = blBlockedOnly.checked;
     let items = allTrackers || [];
-    if (blockedOnly) items = items.filter(t => blockedSet.has(t.name));
+    if (blockedOnly) items = items.filter(t => isEffectivelyBlocked(t));
     if (q) items = items.filter(t => t.name.toLowerCase().includes(q) || (t.category||"").toLowerCase().includes(q));
 
     while (blList.firstChild) blList.removeChild(blList.firstChild);
@@ -863,7 +880,8 @@
       const lbl = document.createElement("label");
       lbl.className = "cc-toggle"; lbl.style.flexShrink = "0";
       const chk = document.createElement("input"); chk.type = "checkbox";
-      chk.checked = blockedSet.has(t.name);
+      chk.checked  = isEffectivelyBlocked(t);
+      chk.disabled = blockAllActive && !blockAllExcludedCats.includes((t.category || "").toLowerCase());
       const track = document.createElement("span"); track.className = "cc-track";
       track.innerHTML = '<span class="cc-thumb"></span>';
       lbl.appendChild(chk); lbl.appendChild(track);
