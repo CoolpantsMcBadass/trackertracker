@@ -243,18 +243,25 @@
 
   // ── Main attempt logic ────────────────────────────────────────────────────
 
+  // Cache the disabled check once per page load - no need to ask the background
+  // on every DOM mutation since the user can't change this setting mid-page.
+  let siteEnabledCache = null;
+
   function attempt() {
     if (bannerDeclined) return;
 
-    // Check if site is disabled
-    chrome.runtime.sendMessage(
-      { type: "IS_SITE_DISABLED", host: location.hostname },
-      (resp) => {
-        if (chrome.runtime.lastError) return;
-        if (resp && resp.disabled) return;
-        run();
-      }
-    );
+    if (siteEnabledCache === null) {
+      chrome.runtime.sendMessage(
+        { type: "IS_SITE_DISABLED", host: location.hostname },
+        (resp) => {
+          if (chrome.runtime.lastError) return;
+          siteEnabledCache = !(resp && resp.disabled);
+          if (siteEnabledCache) run();
+        }
+      );
+    } else if (siteEnabledCache) {
+      run();
+    }
   }
 
   function run() {

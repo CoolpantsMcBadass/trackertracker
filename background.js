@@ -13,18 +13,18 @@ let blockAllDefault = false; // apply block-all automatically on every startup
 
 // ── Blocking via declarativeNetRequest ───────────────────────────────────────
 
-// Individual tracker blocks use IDs 10000–59999 (hash-derived).
-// Preemptive block-all uses sequential IDs from 100000 upward (no collisions).
+// Individual tracker blocks use IDs 10000–99999 (sequential, no collisions).
+// Preemptive block-all uses sequential IDs from 100000 upward.
 const BLOCK_ALL_ID_BASE = 100000;
+const INDIVIDUAL_ID_MIN = 10000;
 
-// Derive a stable integer rule ID from a domain string (range 10000–59999)
-function domainToRuleId(domain) {
-  let hash = 0;
-  for (let i = 0; i < domain.length; i++) {
-    hash = ((hash << 5) - hash) + domain.charCodeAt(i);
-    hash |= 0;
-  }
-  return 10000 + Math.abs(hash) % 50000;
+const domainRuleIds = new Map(); // domain -> assigned DNR rule ID
+let nextIndividualRuleId = INDIVIDUAL_ID_MIN;
+
+function saveRuleIdMap() {
+  const obj = {};
+  for (const [domain, id] of domainRuleIds) obj[domain] = id;
+  chrome.storage.local.set({ ruleIdMap: obj });
 }
 
 const BLOCK_RESOURCE_TYPES = [
@@ -33,22 +33,45 @@ const BLOCK_RESOURCE_TYPES = [
 ];
 
 async function addBlockRules(domains) {
-  const rules = domains.map(domain => ({
-    id: domainToRuleId(domain),
-    priority: 2,
-    action: { type: "block" },
-    condition: { urlFilter: `||${domain}`, resourceTypes: BLOCK_RESOURCE_TYPES }
-  }));
+  const rules = [];
+  for (const domain of domains) {
+    let id = domainRuleIds.get(domain);
+    if (id === undefined) {
+      if (nextIndividualRuleId >= BLOCK_ALL_ID_BASE) {
+        console.warn("[TrackerTracker] individual block rule ID space full, skipping", domain);
+        continue;
+      }
+      id = nextIndividualRuleId++;
+      domainRuleIds.set(domain, id);
+    }
+    rules.push({
+      id,
+      priority: 2,
+      action: { type: "block" },
+      condition: { urlFilter: `||${domain}`, resourceTypes: BLOCK_RESOURCE_TYPES }
+    });
+  }
+  if (!rules.length) return;
+  // Remove first so re-adding after a SW restart doesn't fail on duplicate IDs
   await chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: rules.map(r => r.id),
     addRules: rules,
   });
+  saveRuleIdMap();
 }
 
 async function removeBlockRules(domains) {
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: domains.map(domainToRuleId),
-  });
+  const ids = [];
+  for (const domain of domains) {
+    const id = domainRuleIds.get(domain);
+    if (id !== undefined) {
+      ids.push(id);
+      domainRuleIds.delete(domain);
+    }
+  }
+  if (!ids.length) return;
+  await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: ids });
+  saveRuleIdMap();
 }
 
 function saveBlockedTrackers() {
@@ -143,11 +166,21 @@ async function init() {
   await loadTrackers();
 
   const data = await chrome.storage.local.get([
-    "blockedTrackers", "disabledSites", "blockAllDefault"
+    "blockedTrackers", "disabledSites", "blockAllDefault", "ruleIdMap"
   ]);
 
   if (data.disabledSites) {
     for (const host of data.disabledSites) disabledSites.add(host);
+  }
+
+  // Restore domain -> rule ID assignments so sequential IDs stay stable
+  // across SW restarts and we never reuse or collide IDs.
+  if (data.ruleIdMap) {
+    for (const [domain, id] of Object.entries(data.ruleIdMap)) {
+      domainRuleIds.set(domain, id);
+    }
+    const maxId = domainRuleIds.size ? Math.max(...domainRuleIds.values()) : INDIVIDUAL_ID_MIN - 1;
+    nextIndividualRuleId = Math.min(maxId + 1, BLOCK_ALL_ID_BASE - 1);
   }
 
   // Always clear stale block-all rules first. Block-all is session-only unless
@@ -163,14 +196,22 @@ async function init() {
   if (data.blockedTrackers) {
     for (const [name, domains] of Object.entries(data.blockedTrackers)) {
       blockedTrackers.set(name, domains);
-      await addBlockRules(domains);
+      try {
+        await addBlockRules(domains);
+      } catch (err) {
+        console.error("[TrackerTracker] failed to restore block rules for", name, err);
+      }
     }
   }
 
   blockAllDefault = data.blockAllDefault || false;
 
   if (blockAllDefault) {
-    await enableBlockAll();
+    try {
+      await enableBlockAll();
+    } catch (err) {
+      console.error("[TrackerTracker] failed to re-enable block-all on startup:", err);
+    }
   }
 }
 
@@ -186,8 +227,13 @@ chrome.webRequest.onBeforeRequest.addListener(
     const tracker = matchTracker(details.url);
     if (!tracker) return;
 
-    // Check if disabled for this tab's site
-    // (We check against stored disabled sites; site check happens via tab URL)
+    // Skip detection entirely if the extension is disabled for this page
+    if (details.initiator) {
+      try {
+        if (disabledSites.has(new URL(details.initiator).hostname)) return;
+      } catch (_) {}
+    }
+
     if (!tabTrackers.has(details.tabId)) {
       tabTrackers.set(details.tabId, new Map());
     }
@@ -199,7 +245,7 @@ chrome.webRequest.onBeforeRequest.addListener(
 
     if (isNew) schedulePush(details.tabId);
   },
-  { urls: ["<all_urls>"] }
+  { urls: ["<all_urls>"], types: ["script", "xmlhttprequest", "websocket", "ping", "sub_frame"] }
 );
 
 // Push tracker list to overlay. First detection fires immediately; subsequent

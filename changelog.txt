@@ -183,3 +183,34 @@ v1.0.3 (2026-06-01) [patch]
 
 v1.0.3 (2026-06-01) [patch]
 - background.js: fixed stale DNR rules causing block-all to stay active after being toggled off - root cause was atomic updateDynamicRules calls rolling back the removal when the add failed; split into separate remove/add calls so cleanup always succeeds; also restructured init() to unconditionally clear block-all rules before restoring state
+
+v1.0.3 (2026-06-02) [fix 1/8]
+- background.js: replaced hash-based domainToRuleId (birthday paradox ~64% collision chance with 10k+ domains) with sequential ID counter + persisted ruleIdMap; IDs are now stable across SW restarts and guaranteed unique; added saveRuleIdMap(), updated addBlockRules/removeBlockRules to use map, updated init() to restore map and seed nextIndividualRuleId from max existing ID
+
+v1.0.3 (2026-06-02) [fix 2/8]
+- background.js: wrapped addBlockRules and enableBlockAll calls in init() with try/catch - a failure in either no longer rejects initPromise, which would have silently broken all message handlers that depend on it
+
+v1.0.3 (2026-06-02) [fix 3/8]
+- background.js: added types filter to webRequest.onBeforeRequest listener - now only fires for script, xmlhttprequest, websocket, ping, sub_frame; trackers only phone home via these types so detection is unchanged, but listener no longer runs on every image/font/CSS request
+
+v1.0.3 (2026-06-02) [fix 4/8]
+- background.js: webRequest listener now checks details.initiator against disabledSites before doing anything; previously the badge would still increment and trackers would still be stored even when the extension was disabled for a site
+
+v1.0.3 (2026-06-02) [fix 4/8]
+- background.js: webRequest listener now checks details.initiator against disabledSites; badge no longer increments and trackers no longer stored for disabled sites
+- overlay.js: overlay now hides itself on load if the site is disabled, not just when the toggle is changed mid-session
+
+v1.0.3 (2026-06-02) [fix 4b/8]
+- overlay.js: disabled sites no longer hide the pill entirely - pill stays visible but grayed out/desaturated; clicking it opens settings tab directly so the user can re-enable; fixes the lockout where disabling a site made the overlay inaccessible
+
+v1.0.3 (2026-06-02) [fix 5/8]
+- content.js: cached IS_SITE_DISABLED result in siteEnabledCache per page load; previously sent a background message on every MutationObserver debounce (every 300ms of DOM activity); the enabled state can't change mid-page so one check per load is sufficient
+
+v1.0.3 (2026-06-02) [fix 6/8]
+- overlay.js: replaced innerHTML with textContent for category header labels; eliminates XSS surface even though tracker data is currently bundled
+
+v1.0.3 (2026-06-02) [fix 7/8]
+- overlay.js: replaced e.target !== host with e.composedPath().includes(host) for correct shadow DOM click-outside detection; fixed didDrag never being reset after a drag ended, which caused click-outside-to-close to stop working after any drag
+
+v1.0.3 (2026-06-02) [fix 8/8]
+- popup/popup.js: added chrome.runtime.lastError checks to all sendMessage callbacks; fire-and-forget sends now use a shared suppressErr callback to prevent Chrome logging unchecked runtime error warnings when the SW is mid-restart

@@ -61,6 +61,7 @@
     }
     .cc-pill:hover { background:#1c2233; border-color:#3d5170; }
     .cc-pill.dragging { cursor:grabbing !important; }
+    .cc-pill.cc-site-disabled { opacity:0.4; filter:grayscale(1); }
 
     .cc-icon { width:18px; height:18px; flex-shrink:0; }
 
@@ -630,7 +631,14 @@
 
       const catHeader = document.createElement("div");
       catHeader.className = "cc-cat-header";
-      catHeader.innerHTML = `<span class="cc-cat-name">${CAT_LABELS[cat] || cat}</span><span class="cc-cat-count">${items.length}</span>`;
+      const catNameEl = document.createElement("span");
+      catNameEl.className = "cc-cat-name";
+      catNameEl.textContent = CAT_LABELS[cat] || cat;
+      const catCountEl = document.createElement("span");
+      catCountEl.className = "cc-cat-count";
+      catCountEl.textContent = items.length;
+      catHeader.appendChild(catNameEl);
+      catHeader.appendChild(catCountEl);
       section.appendChild(catHeader);
 
       for (const t of items.sort((a,b) => a.name.localeCompare(b.name))) {
@@ -706,9 +714,14 @@
   function openPanel() {
     expanded = true;
     panel.classList.add("open");
-    renderBanner();
-    renderTrackers();
-    switchTab(activeTab);
+    // If site is disabled, land on settings so user can re-enable immediately
+    if (pill.classList.contains("cc-site-disabled")) {
+      switchTab("settings");
+    } else {
+      renderBanner();
+      renderTrackers();
+      switchTab(activeTab);
+    }
   }
 
   function closePanel() {
@@ -757,7 +770,9 @@
     pill.classList.remove("dragging");
     document.removeEventListener("mousemove", onDragMove);
     document.removeEventListener("mouseup",   onDragEnd);
-    if (didDrag) {
+    const wasDrag = didDrag;
+    didDrag = false; // reset so click-outside works normally after dragging
+    if (wasDrag) {
       const rect = host.getBoundingClientRect();
       chrome.storage.local.set({ overlayPos: { left: rect.left, top: rect.top } });
     } else {
@@ -771,21 +786,25 @@
   closeBtn.addEventListener("click", (e) => { e.stopPropagation(); closePanel(); });
 
   document.addEventListener("click", (e) => {
-    if (didDrag) return;
-    if (e.target !== host) closePanel();
+    if (!e.composedPath().includes(host)) closePanel();
   });
 
   // ── Settings wiring ────────────────────────────────────────────────────────
   siteHostname.textContent = location.hostname;
 
   chrome.runtime.sendMessage({ type:"IS_SITE_DISABLED", host:location.hostname }, (resp) => {
-    siteToggle.checked = !(resp && resp.disabled);
+    const disabled = resp && resp.disabled;
+    siteToggle.checked = !disabled;
+    pill.classList.toggle("cc-site-disabled", !!disabled);
   });
 
   siteToggle.addEventListener("change", () => {
     chrome.runtime.sendMessage(
       { type:"SET_SITE_ENABLED", host:location.hostname, enabled:siteToggle.checked },
-      () => { if (!siteToggle.checked) { closePanel(); host.style.display = "none"; } }
+      () => {
+        pill.classList.toggle("cc-site-disabled", !siteToggle.checked);
+        if (!siteToggle.checked) closePanel();
+      }
     );
   });
 

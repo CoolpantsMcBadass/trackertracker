@@ -162,10 +162,13 @@ async function init() {
   // ── Site toggle ──
   const siteToggle = document.getElementById("tt-site-toggle");
   chrome.runtime.sendMessage({ type: "GET_SITE_ENABLED", host }, (resp) => {
+    if (chrome.runtime.lastError) return;
     siteToggle.checked = resp ? resp.enabled : true;
   });
   siteToggle.addEventListener("change", () => {
-    chrome.runtime.sendMessage({ type: "SET_SITE_ENABLED", host, enabled: siteToggle.checked });
+    chrome.runtime.sendMessage({ type: "SET_SITE_ENABLED", host, enabled: siteToggle.checked }, () => {
+      chrome.runtime.lastError; // suppress unchecked error warning
+    });
   });
 
   // ── Block-all toggles ──
@@ -173,24 +176,26 @@ async function init() {
   const blockDefault = document.getElementById("tt-block-default");
 
   chrome.runtime.sendMessage({ type: "GET_BLOCK_ALL" }, (resp) => {
-    if (!resp) return;
+    if (chrome.runtime.lastError || !resp) return;
     blockAll.checked     = resp.enabled;
     blockDefault.checked = resp.default;
   });
 
+  const suppressErr = () => { chrome.runtime.lastError; };
+
   blockAll.addEventListener("change", () => {
-    chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL", enabled: blockAll.checked });
+    chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL", enabled: blockAll.checked }, suppressErr);
     if (!blockAll.checked && blockDefault.checked) {
       blockDefault.checked = false;
-      chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL_DEFAULT", enabled: false });
+      chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL_DEFAULT", enabled: false }, suppressErr);
     }
   });
 
   blockDefault.addEventListener("change", () => {
-    chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL_DEFAULT", enabled: blockDefault.checked });
+    chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL_DEFAULT", enabled: blockDefault.checked }, suppressErr);
     if (blockDefault.checked && !blockAll.checked) {
       blockAll.checked = true;
-      chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL", enabled: true });
+      chrome.runtime.sendMessage({ type: "SET_BLOCK_ALL", enabled: true }, suppressErr);
     }
   });
 
@@ -209,7 +214,7 @@ async function init() {
 
   // ── Tracker + banner data ──
   chrome.runtime.sendMessage({ type: "GET_TAB_DATA", tabId: tab.id }, (resp) => {
-    if (!resp) return;
+    if (chrome.runtime.lastError || !resp) return;
     allTrackers = resp.trackers || [];
     updateBanner(resp.banner);
     renderTrackers(allTrackers, searchQuery);
