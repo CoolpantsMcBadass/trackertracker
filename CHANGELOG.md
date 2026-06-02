@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.0.5] - 2026-06-02
+
+### Fixed
+- background.js: block-all rules now use `excludedInitiatorDomains: tracker.domains` (all domains for that tracker) instead of `[domain]` (only the single blocked domain). Previously, visiting reddit.com would still trigger blocks on redditstatic.com and redditmedia.com because the initiator `reddit.com` wasn't excluded from those rules. Now any page on a tracker's own domain family bypasses that tracker's block rules entirely.
+
+---
+
 ## [1.0.4] - 2026-06-02
 
 ### Fixed

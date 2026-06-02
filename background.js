@@ -131,7 +131,7 @@ async function enableBlockAll() {
         id: id++,
         priority: 3,
         action: { type: "block" },
-        condition: { urlFilter: `||${domain}`, resourceTypes: BLOCK_RESOURCE_TYPES }
+        condition: { urlFilter: `||${domain}`, resourceTypes: BLOCK_RESOURCE_TYPES, excludedInitiatorDomains: tracker.domains }
       });
     }
   }
