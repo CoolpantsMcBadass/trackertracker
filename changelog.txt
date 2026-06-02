@@ -228,3 +228,6 @@ v1.0.3 (2026-06-02) [audit fixes]
 - background.js: tabs.onUpdated now clears pushTimers on navigation to prevent stale debounced pushes firing on the new page
 - background.js: GET_SITE_ENABLED, IS_SITE_DISABLED, GET_BLOCKED_TRACKERS now wait for initPromise before responding; fixes race condition where SW restart caused these to return stale empty data
 - popup/popup.js: replaced innerHTML with textContent for category header labels
+
+v1.0.3 (2026-06-02) [copy]
+- overlay.js, popup/popup.html: updated 'Block all trackers' subtitle to 'Blocks all trackers except support' to reflect actual behavior

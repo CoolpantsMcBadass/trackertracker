@@ -455,7 +455,7 @@
         <div class="cc-setting-row">
           <div class="cc-setting-text">
             <span class="cc-setting-name">Block all trackers</span>
-            <span class="cc-setting-sub">Preemptively block all known trackers</span>
+            <span class="cc-setting-sub">Blocks all trackers except support</span>
           </div>
           <label class="cc-toggle">
             <input type="checkbox" id="cc-block-all-global" />
