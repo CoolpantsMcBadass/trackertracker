@@ -5,6 +5,10 @@ TrackerTracker Changelog
 - background.js: block-all rules now use excludedInitiatorDomains: tracker.domains (all domains for that tracker) instead of just the single blocked domain; fixes sites like Reddit where the initiator (reddit.com) differs from the blocked resource domain (redditstatic.com, redditmedia.com)
 - manifest.json, store-submission/store-listing.txt: updated description to "See exactly what is tracking you and why"
 
+[1.0.4] 2026-06-02
+- background.js: excluded performance and other categories from block-all in addition to support; performance covers CDN/infrastructure (Akamai, Azure CDN, CloudFront), other covers broad platform domains like office.com whose ||office.com DNR rule was breaking Outlook Web
+- background.js: added priority-4 site-level allow rules for disabled sites when block-all is active, so per-site disable properly overrides block-all
+
 [1.0.3] 2026-06-01
 - overlay.js: switchTab("page") now calls renderTrackers() on every switch; previously switching from settings back to page tab showed stale DOM from before blockAllActive was set, so trackers didn't display as blocked even when block-all was on
 
