@@ -214,3 +214,7 @@ v1.0.3 (2026-06-02) [fix 7/8]
 
 v1.0.3 (2026-06-02) [fix 8/8]
 - popup/popup.js: added chrome.runtime.lastError checks to all sendMessage callbacks; fire-and-forget sends now use a shared suppressErr callback to prevent Chrome logging unchecked runtime error warnings when the SW is mid-restart
+
+v1.0.3 (2026-06-02) [fix]
+- overlay.js: panel now resets to tracker list tab when closed, so reopening always shows trackers not settings
+- overlay.js: changed 'trackers on this page' to 'trackers on this page so far' to imply detection is ongoing

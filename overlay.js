@@ -426,7 +426,7 @@
       <div id="cc-banner-chip" class="cc-banner-chip hidden"></div>
       <div class="cc-summary">
         <span class="cc-count" id="cc-count">0</span>
-        <span class="cc-count-label">trackers on this page</span>
+        <span class="cc-count-label">trackers on this page so far</span>
       </div>
       <div id="cc-list"></div>
     </div>
@@ -728,6 +728,7 @@
     expanded = false;
     panel.classList.remove("open");
     tooltip.classList.remove("visible");
+    activeTab = "page";
   }
 
   // ── Drag logic ─────────────────────────────────────────────────────────────
