@@ -1,6 +1,9 @@
 TrackerTracker Changelog
 ========================
 
+[1.0.6] 2026-06-03
+- data/trackers.json: changed "Google" tracker (google.com and country TLDs) from "advertising" to "other" category; the ||google.com urlFilter pattern was catching all *.google.com subdomains (accounts.google.com, www.google.com, etc.) under block-all, breaking YouTube video playback since youtube.com is not in that tracker's excludedInitiatorDomains; actual Google tracking products (Analytics, Tag Manager, DoubleClick, AdServices) are in separate tracker entries and remain blocked
+
 [1.0.5] 2026-06-02
 - background.js: block-all rules now use excludedInitiatorDomains: tracker.domains (all domains for that tracker) instead of just the single blocked domain; fixes sites like Reddit where the initiator (reddit.com) differs from the blocked resource domain (redditstatic.com, redditmedia.com)
 - manifest.json, store-submission/store-listing.txt: updated description to "See exactly what is tracking you and why"
